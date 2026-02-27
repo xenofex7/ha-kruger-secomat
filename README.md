@@ -10,7 +10,7 @@ Custom integration for [Krüger Secomat](https://www.krueger.ch/secomat/) dehumi
 
 ## API Overview
 
-| | |
+|  | Description |
 |---|---|
 | **Endpoint** | `https://seco.krueger.ch:8080/app1/v1/plc` |
 | **Auth** | Header: `claim-token: <your-token>` |
@@ -45,14 +45,12 @@ Custom integration for [Krüger Secomat](https://www.krueger.ch/secomat/) dehumi
 - 💧 Humidity
 - ⚡ State (off / standby / running / drying / cooling / pause / ready)
 - 🔄 Operating Mode (off / laundry_drying / room_drying / ventilation)
+- 🎯 Target Moisture (wet / dry / extra_dry - read-only, set by device program)
 - 🔧 Firmware (diagnostic)
 
 **Switches:**
 - 👕 Laundry Drying (on/off)
 - 🏠 Room Drying (on/off)
-
-**Select:**
-- 🎯 Target Moisture (wet / dry / extra_dry)
 
 ## Installation
 
@@ -103,8 +101,7 @@ custom_components/secomat/
 ├── const.py             # Constants & mappings
 ├── coordinator.py       # Data update coordinator
 ├── manifest.json        # HA integration manifest
-├── select.py            # Target moisture select
-├── sensor.py            # Temperature, humidity, state sensors
+├── sensor.py            # All sensors (temp, humidity, state, target moisture)
 ├── strings.json         # UI strings
 ├── switch.py            # Laundry/room drying switches
 └── translations/

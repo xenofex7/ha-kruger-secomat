@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, OPERATING_MODES, SECOMAT_STATES
+from .const import DOMAIN, HUMIDITY_LEVELS, OPERATING_MODES, SECOMAT_STATES
 from .coordinator import SecomatCoordinator
 
 
@@ -31,6 +31,7 @@ async def async_setup_entry(
         SecomatStateSensor(coordinator, entry, serial),
         SecomatModeSensor(coordinator, entry, serial),
         SecomatFirmwareSensor(coordinator, entry, serial),
+        SecomatTargetMoistureSensor(coordinator, entry, serial),
     ]
 
     async_add_entities(entities)
@@ -146,3 +147,29 @@ class SecomatFirmwareSensor(SecomatBaseSensor):
     def native_value(self) -> str | None:
         """Return the firmware version."""
         return self.coordinator.data.get("fw_version")
+
+
+class SecomatTargetMoistureSensor(SecomatBaseSensor):
+    """Secomat target moisture sensor (read-only)."""
+
+    _attr_name = "Target Moisture"
+    _attr_icon = "mdi:water-percent"
+    _attr_entity_category = "diagnostic"
+
+    def __init__(self, coordinator, entry, serial):
+        super().__init__(coordinator, entry, serial)
+        self._attr_unique_id = f"{serial}_target_moisture"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the current target moisture level."""
+        level = self.coordinator.data.get("target_humidity_level", 1)
+        return HUMIDITY_LEVELS.get(level, "dry")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return additional state attributes."""
+        return {
+            "locked": bool(self.coordinator.data.get("target_humidity_level_locked", 1)),
+            "note": "Target moisture is controlled by the device program and cannot be changed directly",
+        }

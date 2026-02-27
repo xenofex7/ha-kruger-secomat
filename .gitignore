@@ -1,6 +1,9 @@
 # Internal
 RELEASE.md
 
+# Test scripts
+test_*.py
+
 # OS
 .DS_Store
 Thumbs.db
