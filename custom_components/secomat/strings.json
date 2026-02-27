@@ -1,0 +1,20 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Krüger Secomat",
+        "description": "Enter your Secomat claim token. You can obtain it by intercepting the Secomat app traffic with mitmproxy.",
+        "data": {
+          "claim_token": "Claim Token"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid claim token - could not connect to Secomat.",
+      "unknown": "An unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This Secomat is already configured."
+    }
+  }
+}
