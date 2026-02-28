@@ -1,8 +1,9 @@
 # Internal
 RELEASE.md
 
-# Test scripts
+# Test scripts (but keep test.py)
 test_*.py
+!test.py
 
 # OS
 .DS_Store
