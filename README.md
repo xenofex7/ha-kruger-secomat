@@ -17,7 +17,7 @@ Custom integration for [Krüger Secomat](https://www.krueger.ch/secomat/) dehumi
 | **Status** | `GET` → JSON with temp, humidity, state |
 | **Control** | `POST` with `{"command":"...","args":{}}` |
 
-### Commands
+### Commands (verified)
 | Command | Description |
 |---------|-------------|
 | `OFF` | Turn off |
@@ -26,31 +26,49 @@ Custom integration for [Krüger Secomat](https://www.krueger.ch/secomat/) dehumi
 | `PRG_ROOM_ON` | Room drying on |
 | `PRG_ROOM_OFF` | Room drying off |
 
+### Commands (unknown, not reverse-engineered yet)
+- Set target humidity level (slider in the app)
+- Toggle target-humidity lock (lock icon)
+- Toggle HMI backlight ("Control Lights" button)
+
 ### Status Fields
 | Field | Example | Description |
 |-------|---------|-------------|
 | `ambient_temperature` | 20.87 | Temperature °C |
 | `humidity` | 50.50 | Humidity % |
-| `secomat_state` | 0=off, 6=ready | Device state |
-| `operating_mode` | 0=off, 1=laundry, 2=room | Mode |
+| `secomat_state` | 0=ready, 2=starting, 6=drying, 15=drying_high | Runtime phase |
+| `operating_mode` | 0=standby, 1=no_program, 2=laundry_program | Program state |
 | `room_drying_enabled` | 0/1 | Room drying active |
-| `target_humidity_level` | 0=wet, 1=dry, 2=extra_dry | Target moisture |
+| `target_humidity_level` | 0=very_dry, 1=dry, 2=medium, 3=moist | Target moisture |
+| `target_humidity_level_locked` | 0/1 | Lock on target moisture slider |
+| `hmi_backlight` | 0/1 | Device display backlight |
+| `eye_seeing_object` | 0/1 | Proximity/laundry detection sensor |
+| `next_start` | ISO timestamp or 0 | Scheduled start (0 = none) |
+| `error_list` | [] | Active errors |
 | `serial_number` | 43.16554 | Serial number |
 | `fw_version` | 0.3.06 | Firmware version |
 
 ## Features
 
 **Sensors:**
-- 🌡️ Temperature
-- 💧 Humidity
-- ⚡ State (off / standby / running / drying / cooling / pause / ready)
-- 🔄 Operating Mode (off / laundry_drying / room_drying / ventilation)
-- 🎯 Target Moisture (wet / dry / extra_dry - read-only, set by device program)
-- 🔧 Firmware (diagnostic)
+- Temperature
+- Humidity
+- State (ready / starting / drying / drying_high)
+- Operating Mode (standby / no_program / laundry_program)
+- Target Moisture (very_dry / dry / medium / moist — read-only)
+- Next Start (timestamp, diagnostic)
+- Error Count (diagnostic, with list attribute)
+- Firmware (diagnostic)
+- Device Tick (diagnostic, disabled by default)
+
+**Binary sensors:**
+- Eye Detects Object (proximity)
+- Display Backlight (diagnostic)
+- Problem (on when `error_list` is non-empty, diagnostic)
 
 **Switches:**
-- 👕 Laundry Drying (on/off)
-- 🏠 Room Drying (on/off)
+- Laundry Drying (on/off)
+- Room Drying (on/off)
 
 ## Installation
 

@@ -33,9 +33,9 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 - Converts `SecomatAPIError` to `UpdateFailed` for HA error handling
 
 **Platforms**:
-- **Sensors**: Temperature, Humidity, State, Operating Mode, Firmware
+- **Sensors**: Temperature, Humidity, State, Operating Mode, Firmware, Target Moisture, Error Count, Next Start, Device Tick
+- **Binary Sensors**: Eye Detects Object, Display Backlight, Problem
 - **Switches**: Laundry Drying, Room Drying
-- **Select**: Target Moisture Level (wet/dry/extra_dry)
 
 All entity classes inherit from `CoordinatorEntity` for automatic updates.
 
@@ -50,20 +50,24 @@ Available commands sent via `api.send_command(command, args)`:
 | `PRG_WASH_TIMER` | None | Start laundry drying (timer) |
 | `PRG_ROOM_ON` | None | Enable room drying |
 | `PRG_ROOM_OFF` | None | Disable room drying |
-| `SET_TARGET_HUMIDITY` | `{"level": 0-2}` | Set target moisture level |
+
+Commands that exist in the app but are not yet reverse-engineered:
+- Set target humidity level
+- Toggle target-humidity lock
+- Toggle HMI backlight ("Control Lights" button)
 
 ## State Mappings
 
-Defined in `const.py`:
+Defined in `const.py` (reverse-engineered by live observation; gaps remain):
 
 **Secomat States** (`secomat_state`):
-- 0=off, 1=standby, 2=running, 3=drying, 4=cooling, 5=pause, 6=ready
+- 0=ready, 2=starting, 6=drying, 15=drying_high
 
 **Operating Modes** (`operating_mode`):
-- 0=off, 1=laundry_drying, 2=room_drying, 3=ventilation
+- 0=standby, 1=no_program, 2=laundry_program
 
 **Humidity Levels** (`target_humidity_level`):
-- 0=wet, 1=dry, 2=extra_dry
+- 0=very_dry, 1=dry, 2=medium, 3=moist
 
 ## Development Commands
 
@@ -117,14 +121,20 @@ GET request returns:
 {
   "type": "STATE",
   "payload": {
+    "now": 13256016,
+    "secomat_state": 6,
+    "operating_mode": 2,
+    "room_drying_enabled": 1,
     "ambient_temperature": 20.87,
     "humidity": 50.50,
-    "secomat_state": 6,
-    "operating_mode": 0,
-    "room_drying_enabled": 0,
+    "next_start": 0,
     "target_humidity_level": 1,
-    "serial_number": "43.16554",
-    "fw_version": "0.3.06"
+    "target_humidity_level_locked": 1,
+    "hmi_backlight": 0,
+    "eye_seeing_object": 1,
+    "error_list": [],
+    "fw_version": "0.3.06",
+    "serial_number": "43.16554"
   }
 }
 ```
