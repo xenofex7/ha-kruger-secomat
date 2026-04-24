@@ -7,7 +7,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import AbortFlow, FlowResult
 
 from .api import SecomatAPI
 from .const import CONF_CLAIM_TOKEN, DOMAIN
@@ -46,6 +46,8 @@ class SecomatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     )
                 else:
                     errors["base"] = "invalid_auth"
+            except AbortFlow:
+                raise
             except Exception:
                 _LOGGER.exception("Unexpected error during config flow")
                 errors["base"] = "unknown"
