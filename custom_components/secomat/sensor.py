@@ -9,6 +9,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -32,6 +33,9 @@ async def async_setup_entry(
         SecomatModeSensor(coordinator, entry, serial),
         SecomatFirmwareSensor(coordinator, entry, serial),
         SecomatTargetMoistureSensor(coordinator, entry, serial),
+        SecomatErrorCountSensor(coordinator, entry, serial),
+        SecomatNextStartSensor(coordinator, entry, serial),
+        SecomatDeviceTickSensor(coordinator, entry, serial),
     ]
 
     async_add_entities(entities)
@@ -137,7 +141,7 @@ class SecomatFirmwareSensor(SecomatBaseSensor):
 
     _attr_name = "Firmware"
     _attr_icon = "mdi:chip"
-    _attr_entity_category = "diagnostic"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator, entry, serial):
         super().__init__(coordinator, entry, serial)
@@ -154,7 +158,7 @@ class SecomatTargetMoistureSensor(SecomatBaseSensor):
 
     _attr_name = "Target Moisture"
     _attr_icon = "mdi:water-percent"
-    _attr_entity_category = "diagnostic"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator, entry, serial):
         super().__init__(coordinator, entry, serial)
@@ -173,3 +177,57 @@ class SecomatTargetMoistureSensor(SecomatBaseSensor):
             "locked": bool(self.coordinator.data.get("target_humidity_level_locked", 1)),
             "note": "Target moisture is controlled by the device program and cannot be changed directly",
         }
+
+
+class SecomatErrorCountSensor(SecomatBaseSensor):
+    """Number of active errors reported by the device."""
+
+    _attr_name = "Error Count"
+    _attr_icon = "mdi:alert-circle"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator, entry, serial):
+        super().__init__(coordinator, entry, serial)
+        self._attr_unique_id = f"{serial}_error_count"
+
+    @property
+    def native_value(self) -> int:
+        return len(self.coordinator.data.get("error_list") or [])
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        return {"errors": self.coordinator.data.get("error_list") or []}
+
+
+class SecomatNextStartSensor(SecomatBaseSensor):
+    """Next scheduled program start (0 = none)."""
+
+    _attr_name = "Next Start"
+    _attr_icon = "mdi:timer-play-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator, entry, serial):
+        super().__init__(coordinator, entry, serial)
+        self._attr_unique_id = f"{serial}_next_start"
+
+    @property
+    def native_value(self) -> int | None:
+        return self.coordinator.data.get("next_start")
+
+
+class SecomatDeviceTickSensor(SecomatBaseSensor):
+    """Raw device clock/tick reported in the `now` field."""
+
+    _attr_name = "Device Tick"
+    _attr_icon = "mdi:clock-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator, entry, serial):
+        super().__init__(coordinator, entry, serial)
+        self._attr_unique_id = f"{serial}_device_tick"
+
+    @property
+    def native_value(self) -> int | None:
+        return self.coordinator.data.get("now")

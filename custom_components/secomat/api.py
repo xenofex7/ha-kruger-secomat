@@ -12,7 +12,7 @@ from .const import API_BASE_URL
 _LOGGER = logging.getLogger(__name__)
 
 
-class SecoматAPIError(Exception):
+class SecomatAPIError(Exception):
     """Secomat API error."""
 
 
@@ -54,15 +54,15 @@ class SecomatAPI:
                 timeout=aiohttp.ClientTimeout(total=10),
             ) as response:
                 if response.status != 200:
-                    raise SecoматAPIError(f"API returned {response.status}")
+                    raise SecomatAPIError(f"API returned {response.status}")
                 data = await response.json()
                 if data.get("type") == "STATE":
                     return data.get("payload", {})
                 return data
         except aiohttp.ClientError as err:
-            raise SecoматAPIError(f"Connection error: {err}") from err
+            raise SecomatAPIError(f"Connection error: {err}") from err
         except asyncio.TimeoutError as err:
-            raise SecoматAPIError("Request timeout") from err
+            raise SecomatAPIError("Request timeout") from err
 
     async def send_command(self, command: str, args: dict | None = None) -> bool:
         """Send a command to the Secomat."""
@@ -77,13 +77,13 @@ class SecomatAPI:
                 timeout=aiohttp.ClientTimeout(total=10),
             ) as response:
                 if response.status != 200:
-                    raise SecoматAPIError(f"API returned {response.status}")
+                    raise SecomatAPIError(f"API returned {response.status}")
                 data = await response.json()
                 return data.get("status") == "OK"
         except aiohttp.ClientError as err:
-            raise SecoматAPIError(f"Connection error: {err}") from err
+            raise SecomatAPIError(f"Connection error: {err}") from err
         except asyncio.TimeoutError as err:
-            raise SecoматAPIError("Request timeout") from err
+            raise SecomatAPIError("Request timeout") from err
 
     async def turn_off(self) -> bool:
         """Turn off the Secomat."""
@@ -106,7 +106,7 @@ class SecomatAPI:
         try:
             state = await self.get_state()
             return "serial_number" in state
-        except SecoматAPIError:
+        except SecomatAPIError:
             return False
 
     async def close(self) -> None:

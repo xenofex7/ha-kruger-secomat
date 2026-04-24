@@ -8,7 +8,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import SecomatAPI, SecoматAPIError
+from .api import SecomatAPI, SecomatAPIError
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,5 +31,5 @@ class SecomatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Fetch data from the Secomat API."""
         try:
             return await self.api.get_state()
-        except SecoматAPIError as err:
+        except SecomatAPIError as err:
             raise UpdateFailed(f"Error fetching Secomat data: {err}") from err
