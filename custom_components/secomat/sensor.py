@@ -1,6 +1,8 @@
 """Sensor platform for Krüger Secomat."""
 from __future__ import annotations
 
+from datetime import datetime
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -167,15 +169,16 @@ class SecomatTargetMoistureSensor(SecomatBaseSensor):
     @property
     def native_value(self) -> str | None:
         """Return the current target moisture level."""
-        level = self.coordinator.data.get("target_humidity_level", 1)
-        return HUMIDITY_LEVELS.get(level, "dry")
+        level = self.coordinator.data.get("target_humidity_level")
+        if level is None:
+            return None
+        return HUMIDITY_LEVELS.get(level, f"unknown ({level})")
 
     @property
     def extra_state_attributes(self) -> dict:
         """Return additional state attributes."""
         return {
-            "locked": bool(self.coordinator.data.get("target_humidity_level_locked", 1)),
-            "note": "Target moisture is controlled by the device program and cannot be changed directly",
+            "locked": bool(self.coordinator.data.get("target_humidity_level_locked")),
         }
 
 
@@ -201,10 +204,11 @@ class SecomatErrorCountSensor(SecomatBaseSensor):
 
 
 class SecomatNextStartSensor(SecomatBaseSensor):
-    """Next scheduled program start (0 = none)."""
+    """Next scheduled program start (None when no timer set)."""
 
     _attr_name = "Next Start"
     _attr_icon = "mdi:timer-play-outline"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator, entry, serial):
@@ -212,8 +216,16 @@ class SecomatNextStartSensor(SecomatBaseSensor):
         self._attr_unique_id = f"{serial}_next_start"
 
     @property
-    def native_value(self) -> int | None:
-        return self.coordinator.data.get("next_start")
+    def native_value(self) -> datetime | None:
+        raw = self.coordinator.data.get("next_start")
+        if not raw or raw == 0:
+            return None
+        try:
+            # Device sends ISO-8601 with 'Z' suffix; drop millisecond jitter.
+            dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            return dt.replace(microsecond=0)
+        except (ValueError, AttributeError):
+            return None
 
 
 class SecomatDeviceTickSensor(SecomatBaseSensor):
