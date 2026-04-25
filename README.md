@@ -1,12 +1,8 @@
 # 🌡️ Krüger Secomat - Home Assistant Integration
 
-Custom integration for [Krüger Secomat](https://www.krueger.ch/secomat/) dehumidifiers.
+Home Assistant integration for the [Krüger Secomat](https://www.krueger.ch/secomat/) WiFi dehumidifier. Exposes sensors (temperature, humidity, state) and switches (laundry/room drying) via the official Krüger Cloud API.
 
-## What I did
-1. **Found Secomat on the network** → ESP32-based (Espressif), no open ports
-2. **Intercepted app traffic** with mitmproxy → found Cloud API
-3. **Reverse-engineered the API** → `seco.krueger.ch:8080`
-4. **Built HA Custom Integration** → Sensors + Switches
+**Requires:** a Krüger Secomat device, Home Assistant 2024.x or newer, and a claim token (see below).
 
 ## API Overview
 
@@ -55,7 +51,7 @@ Custom integration for [Krüger Secomat](https://www.krueger.ch/secomat/) dehumi
 - Humidity
 - State (ready / starting / drying / drying_high)
 - Operating Mode (standby / no_program / laundry_program)
-- Target Moisture (very_dry / dry / medium / moist — read-only)
+- Target Moisture (very_dry / dry / medium / moist - read-only)
 - Next Start (timestamp, diagnostic)
 - Error Count (diagnostic, with list attribute)
 - Firmware (diagnostic)
@@ -109,33 +105,18 @@ The claim token authenticates your requests to the Secomat Cloud API. To obtain 
 7. The `claim-token` header value is your token
 8. **Disable the proxy** on your phone when done!
 
-## File Structure
+## How it was built
 
-```
-custom_components/secomat/
-├── __init__.py          # Integration setup
-├── api.py               # Secomat Cloud API client
-├── config_flow.py       # Setup dialog
-├── const.py             # Constants & mappings
-├── coordinator.py       # Data update coordinator
-├── manifest.json        # HA integration manifest
-├── sensor.py            # All sensors (temp, humidity, state, target moisture)
-├── strings.json         # UI strings
-├── switch.py            # Laundry/room drying switches
-└── translations/
-    └── en.json          # English translations
-```
+1. Found the Secomat on the network: ESP32-based, no open ports
+2. Intercepted the official app's traffic with mitmproxy
+3. Reverse-engineered the Cloud API at `seco.krueger.ch:8080`
+4. Built this HA integration around it
 
-## Technical Details
+Reverse-engineered February 2026. Cloud-polling, 30s interval.
 
-- **Device**: ESP32 (Espressif) with WiFi
-- **Communication**: Device ↔ Krüger Cloud ↔ App/HA
-- **Polling interval**: 30 seconds (configurable in `const.py`)
-- **IoT Class**: Cloud Polling
+## Issues / Help
 
-## Credits
-
-API reverse-engineered with mitmproxy, February 2026.
+Report bugs or request features at [GitHub Issues](https://github.com/xenofex7/ha-kruger-secomat/issues).
 
 ## License
 
