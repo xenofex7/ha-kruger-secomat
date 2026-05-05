@@ -47,6 +47,7 @@ Available commands sent via `api.send_command(command, args)`:
 |---------|------|-------------|
 | `OFF` | None | Turn off device |
 | `PRG_WASH_AUTO` | None | Start laundry drying (auto) |
+| `PRG_WASH_MANUAL_ON` | `{"prg_wash_starttime": 0}` | Start laundry drying immediately (manual); starttime=0 means now |
 | `PRG_WASH_TIMER` | None | Start laundry drying (timer) |
 | `PRG_ROOM_ON` | None | Enable room drying |
 | `PRG_ROOM_OFF` | None | Disable room drying |

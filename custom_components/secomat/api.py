@@ -90,8 +90,12 @@ class SecomatAPI:
         return await self.send_command("OFF")
 
     async def start_laundry_drying(self) -> bool:
-        """Start laundry drying program."""
+        """Start laundry drying (auto mode)."""
         return await self.send_command("PRG_WASH_AUTO")
+
+    async def start_laundry_drying_manual(self, start_time: int = 0) -> bool:
+        """Start laundry drying (manual/immediate). start_time=0 means start now."""
+        return await self.send_command("PRG_WASH_MANUAL_ON", {"prg_wash_starttime": start_time})
 
     async def start_room_drying(self) -> bool:
         """Start room drying."""
