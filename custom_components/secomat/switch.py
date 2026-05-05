@@ -28,6 +28,7 @@ async def async_setup_entry(
     entities = [
         SecomatPowerSwitch(coordinator, entry, serial),
         SecomatRoomDryingSwitch(coordinator, entry, serial),
+        SecomatMoistureLockSwitch(coordinator, entry, serial),
     ]
 
     async_add_entities(entities)
@@ -121,3 +122,35 @@ class SecomatRoomDryingSwitch(SecomatBaseSwitch):
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
             _LOGGER.error("Failed to turn off room drying: %s", err)
+
+
+class SecomatMoistureLockSwitch(SecomatBaseSwitch):
+    """Lock/unlock target moisture slider (discovered by @ratsch).
+
+    Uses PARAMETER_CHANGE with lock_residual_moisture_target arg.
+    """
+
+    _attr_name = "Moisture Lock"
+    _attr_icon = "mdi:lock"
+
+    def __init__(self, coordinator, entry, serial):
+        super().__init__(coordinator, entry, serial)
+        self._attr_unique_id = f"{serial}_moisture_lock"
+
+    @property
+    def is_on(self) -> bool:
+        return bool(self.coordinator.data.get("target_humidity_level_locked", 0))
+
+    async def async_turn_on(self, **kwargs) -> None:
+        try:
+            await self.coordinator.api.set_moisture_lock(True)
+            await self.coordinator.async_request_refresh()
+        except SecomatAPIError as err:
+            _LOGGER.error("Failed to lock moisture: %s", err)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        try:
+            await self.coordinator.api.set_moisture_lock(False)
+            await self.coordinator.async_request_refresh()
+        except SecomatAPIError as err:
+            _LOGGER.error("Failed to unlock moisture: %s", err)

@@ -97,6 +97,18 @@ class SecomatAPI:
         """Start laundry drying (manual/immediate). start_time=0 means start now."""
         return await self.send_command("PRG_WASH_MANUAL_ON", {"prg_wash_starttime": start_time})
 
+    async def cancel_pending_start(self) -> bool:
+        """Cancel a pending delayed start without full OFF (discovered by @ratsch)."""
+        return await self.send_command("PRG_WASH_MANUAL_OFF")
+
+    async def set_target_moisture(self, level: int) -> bool:
+        """Set target moisture level 0-3 (discovered by @ratsch via PARAMETER_CHANGE)."""
+        return await self.send_command("PARAMETER_CHANGE", {"residual_moisture_target": level})
+
+    async def set_moisture_lock(self, locked: bool) -> bool:
+        """Lock or unlock the target moisture slider (discovered by @ratsch)."""
+        return await self.send_command("PARAMETER_CHANGE", {"lock_residual_moisture_target": int(locked)})
+
     async def start_room_drying(self) -> bool:
         """Start room drying."""
         return await self.send_command("PRG_ROOM_ON")
