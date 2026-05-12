@@ -5,15 +5,21 @@ Secomat API Test Suite
 Unified test script for the Krüger Secomat integration.
 Can be run standalone without Home Assistant.
 
+Token is read from (in order): CLI arg, SECOMAT_TOKEN env var, .env file.
+
 Usage:
-  python3 test.py <claim-token>           # Run basic tests
-  python3 test.py <claim-token> -i        # Interactive mode
-  python3 test.py <claim-token> --all     # Test all command variations
+  python3 test.py [<claim-token>]                # Run basic tests
+  python3 test.py [<claim-token>] -i             # Interactive mode
+  python3 test.py [<claim-token>] --all          # Test all command variations
+  python3 test.py [<claim-token>] --new-commands # Test PR #1 commands
 """
 import asyncio
+import os
 import sys
-import aiohttp
+from pathlib import Path
 from typing import Any
+
+import aiohttp
 
 
 # ============================================================================
@@ -332,6 +338,112 @@ async def run_all_tests(claim_token):
 
 
 # ============================================================================
+# PR #1 New Commands — guided test sequence
+# ============================================================================
+
+async def _confirm(prompt: str) -> bool:
+    """Ask the user before running a destructive command."""
+    answer = input(f"\n▶ {prompt} [y/N] ").strip().lower()
+    return answer in ("y", "yes", "j", "ja")
+
+
+async def _show_state(api: "SecomatAPI", label: str) -> dict:
+    """Fetch state and print the fields relevant to PR #1 tests."""
+    state = await api.get_state()
+    print(f"  {label}: "
+          f"secomat_state={state.get('secomat_state')}, "
+          f"operating_mode={state.get('operating_mode')}, "
+          f"target_humidity_level={state.get('target_humidity_level')}, "
+          f"target_humidity_level_locked={state.get('target_humidity_level_locked')}, "
+          f"next_start={state.get('next_start')}")
+    return state
+
+
+async def run_new_commands(claim_token: str) -> None:
+    """Interactively verify the commands introduced in PR #1."""
+    print(f"🧪 PR #1 command verification — token: {claim_token[:10]}...")
+    print("Each step prompts before sending. Skip with 'n', run with 'y'.\n")
+
+    api = SecomatAPI(claim_token)
+    try:
+        await _show_state(api, "Initial state")
+
+        # 1. PRG_WASH_MANUAL_ON (immediate start)
+        if await _confirm("Send PRG_WASH_MANUAL_ON {prg_wash_starttime: 0}? (will start drying)"):
+            await api.send_command("PRG_WASH_MANUAL_ON", {"prg_wash_starttime": 0})
+            await asyncio.sleep(3)
+            state = await _show_state(api, "After PRG_WASH_MANUAL_ON")
+            expected = state.get("secomat_state") == 15 and state.get("operating_mode") == 2
+            print(f"  {'✅' if expected else '⚠️ '} expected secomat_state=15, operating_mode=2")
+
+        # 2. OFF to bring device back
+        if await _confirm("Send OFF to stop?"):
+            await api.send_command("OFF")
+            await asyncio.sleep(3)
+            await _show_state(api, "After OFF")
+
+        # 3. PRG_WASH_MANUAL_OFF cancellation (only meaningful with a pending start)
+        if await _confirm("Test PRG_WASH_MANUAL_OFF? (schedules a +60s delayed start, then cancels)"):
+            await api.send_command("PRG_WASH_MANUAL_ON", {"prg_wash_starttime": 60})
+            await asyncio.sleep(3)
+            await _show_state(api, "After delayed start (+60s)")
+            await asyncio.sleep(2)
+            await api.send_command("PRG_WASH_MANUAL_OFF")
+            await asyncio.sleep(3)
+            state = await _show_state(api, "After PRG_WASH_MANUAL_OFF")
+            print(f"  ℹ️  next_start should drop back to 0 (got {state.get('next_start')})")
+
+        # 4. PARAMETER_CHANGE residual_moisture_target
+        if await _confirm("Cycle target_humidity_level via PARAMETER_CHANGE (0→3)?"):
+            for level in (0, 1, 2, 3):
+                await api.send_command("PARAMETER_CHANGE", {"residual_moisture_target": level})
+                await asyncio.sleep(2)
+                state = await _show_state(api, f"After level={level}")
+                got = state.get("target_humidity_level")
+                print(f"  {'✅' if got == level else '⚠️ '} expected target_humidity_level={level}, got {got}")
+
+        # 5. PARAMETER_CHANGE lock_residual_moisture_target
+        if await _confirm("Toggle target_humidity_level_locked?"):
+            for lock in (1, 0):
+                await api.send_command("PARAMETER_CHANGE", {"lock_residual_moisture_target": lock})
+                await asyncio.sleep(2)
+                state = await _show_state(api, f"After lock={lock}")
+                got = state.get("target_humidity_level_locked")
+                print(f"  {'✅' if got == lock else '⚠️ '} expected target_humidity_level_locked={lock}, got {got}")
+
+    finally:
+        await api.close()
+        print("\n✅ Verification run complete")
+
+
+# ============================================================================
+# Token loading
+# ============================================================================
+
+def _load_dotenv(path: Path) -> None:
+    """Minimal .env loader — KEY=VALUE per line, no quoting magic."""
+    if not path.is_file():
+        return
+    for raw in path.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+def _resolve_token(argv: list[str]) -> tuple[str | None, list[str]]:
+    """Return (token, remaining_args). Token from argv[1] if non-flag, else env."""
+    _load_dotenv(Path(__file__).parent / ".env")
+    rest = argv[1:]
+    if rest and not rest[0].startswith("-"):
+        return rest[0], rest[1:]
+    return os.environ.get("SECOMAT_TOKEN"), rest
+
+
+# ============================================================================
 # Main Entry Point
 # ============================================================================
 
@@ -339,35 +451,36 @@ def print_usage():
     """Print usage information."""
     print(__doc__)
     print("\nAvailable modes:")
-    print("  (default)  Run basic API tests")
-    print("  -i         Interactive command testing")
-    print("  --all      Test all possible command variations")
+    print("  (default)        Run basic API tests")
+    print("  -i               Interactive command testing")
+    print("  --all            Test all possible command variations")
+    print("  --new-commands   Guided verification of PR #1 commands")
     print("\nExamples:")
     print("  python3 test.py abc123def456")
     print("  python3 test.py abc123def456 -i")
-    print("  python3 test.py abc123def456 --all")
+    print("  SECOMAT_TOKEN=abc123 python3 test.py --new-commands")
 
 
 async def main():
     """Main test function."""
-    # Parse arguments
-    if len(sys.argv) < 2 or sys.argv[1] in ['-h', '--help']:
+    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
         print_usage()
         sys.exit(0)
 
-    claim_token = sys.argv[1]
-    mode = sys.argv[2] if len(sys.argv) > 2 else None
+    claim_token, mode_args = _resolve_token(sys.argv)
+    mode = mode_args[0] if mode_args else None
 
-    if not claim_token or claim_token.startswith('-'):
-        print("❌ No claim token provided!")
+    if not claim_token:
+        print("❌ No claim token (set SECOMAT_TOKEN in .env, or pass as first arg)")
         print_usage()
         sys.exit(1)
 
-    # Run appropriate test mode
-    if mode == '-i' or mode == '--interactive':
+    if mode in ("-i", "--interactive"):
         await run_interactive(claim_token)
-    elif mode == '--all':
+    elif mode == "--all":
         await run_all_tests(claim_token)
+    elif mode == "--new-commands":
+        await run_new_commands(claim_token)
     else:
         await run_basic_tests(claim_token)
 

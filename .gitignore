@@ -42,3 +42,6 @@ htmlcov/
 
 # Home Assistant
 *.log
+
+# Local secrets
+.env
