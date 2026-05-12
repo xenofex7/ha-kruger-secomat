@@ -25,10 +25,7 @@ async def async_setup_entry(
     coordinator: SecomatCoordinator = hass.data[DOMAIN][entry.entry_id]
     serial = coordinator.data.get("serial_number", "unknown")
 
-    async_add_entities([
-        SecomatAutoButton(coordinator, entry, serial),
-        SecomatManualButton(coordinator, entry, serial),
-    ])
+    async_add_entities([SecomatManualButton(coordinator, entry, serial)])
 
 
 class SecomatBaseButton(CoordinatorEntity[SecomatCoordinator], ButtonEntity):
@@ -44,25 +41,8 @@ class SecomatBaseButton(CoordinatorEntity[SecomatCoordinator], ButtonEntity):
             "name": f"Secomat {serial}",
             "manufacturer": "Krüger",
             "model": "Secomat",
+            "sw_version": coordinator.data.get("fw_version"),
         }
-
-
-class SecomatAutoButton(SecomatBaseButton):
-    """Start laundry drying in auto mode."""
-
-    _attr_name = "Start Auto Drying"
-    _attr_icon = "mdi:washing-machine"
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_start_auto"
-
-    async def async_press(self) -> None:
-        try:
-            await self.coordinator.api.start_laundry_drying()
-            await self.coordinator.async_request_refresh()
-        except SecomatAPIError as err:
-            _LOGGER.error("Failed to start auto drying: %s", err)
 
 
 class SecomatManualButton(SecomatBaseButton):

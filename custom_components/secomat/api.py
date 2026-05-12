@@ -93,13 +93,17 @@ class SecomatAPI:
         """Start laundry drying (auto mode)."""
         return await self.send_command("PRG_WASH_AUTO")
 
-    async def start_laundry_drying_manual(self, start_time: int = 0) -> bool:
-        """Start laundry drying (manual/immediate). start_time=0 means start now."""
-        return await self.send_command("PRG_WASH_MANUAL_ON", {"prg_wash_starttime": start_time})
+    async def start_laundry_drying_manual(self, delay_seconds: int = 0) -> bool:
+        """Start laundry drying (manual mode).
 
-    async def cancel_pending_start(self) -> bool:
-        """Cancel a pending delayed start without full OFF (discovered by @ratsch)."""
-        return await self.send_command("PRG_WASH_MANUAL_OFF")
+        delay_seconds is the number of seconds from now until the program
+        should start; 0 means start immediately. (Verified on hardware: the
+        device interprets the value as a relative delay, not a Unix epoch
+        timestamp. The iOS app's main drying button sends 0.)
+        """
+        return await self.send_command(
+            "PRG_WASH_MANUAL_ON", {"prg_wash_starttime": delay_seconds}
+        )
 
     async def set_target_moisture(self, level: int) -> bool:
         """Set target moisture level 0-3 (discovered by @ratsch via PARAMETER_CHANGE)."""

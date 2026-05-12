@@ -47,8 +47,7 @@ Available commands sent via `api.send_command(command, args)`:
 |---------|------|-------------|
 | `OFF` | None | Turn off device |
 | `PRG_WASH_AUTO` | None | Start laundry drying (auto) |
-| `PRG_WASH_MANUAL_ON` | `{"prg_wash_starttime": 0}` | Start laundry drying immediately (manual); starttime=0 means now, or Unix seconds for delayed start |
-| `PRG_WASH_MANUAL_OFF` | None | Cancel a pending delayed start without full OFF (credit: @ratsch) |
+| `PRG_WASH_MANUAL_ON` | `{"prg_wash_starttime": <delay_seconds>}` | Start laundry drying (manual); value is seconds from now until start (0 = immediate). Verified on hardware. |
 | `PRG_WASH_TIMER` | None | Start laundry drying (timer) |
 | `PRG_ROOM_ON` | None | Enable room drying |
 | `PRG_ROOM_OFF` | None | Disable room drying |
