@@ -15,90 +15,71 @@
 
 Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exposes sensors, switches, a moisture-target select and a manual-start button via the Krüger Cloud API. Cloud-polled at 30-second intervals, no local device communication required (the device has no open ports).
 
-## API Overview
-
-|  | Description |
-|---|---|
-| **Endpoint** | `https://seco.krueger.ch:8080/app1/v1/plc` |
-| **Auth** | Header: `claim-token: <your-token>` |
-| **Status** | `GET` → JSON with temp, humidity, state |
-| **Control** | `POST` with `{"command":"...","args":{}}` |
-
-### Commands (verified)
-| Command | Description |
-|---------|-------------|
-| `OFF` | Turn off |
-| `PRG_WASH_AUTO` | Laundry drying (auto) |
-| `PRG_WASH_TIMER` | Laundry drying (timer) |
-| `PRG_ROOM_ON` | Room drying on |
-| `PRG_ROOM_OFF` | Room drying off |
-
-### Commands (unknown, not reverse-engineered yet)
-- Set target humidity level (slider in the app)
-- Toggle target-humidity lock (lock icon)
-- Toggle HMI backlight ("Control Lights" button)
-
-### Status Fields
-| Field | Example | Description |
-|-------|---------|-------------|
-| `ambient_temperature` | 20.87 | Temperature °C |
-| `humidity` | 50.50 | Humidity % |
-| `secomat_state` | 0=ready, 2=starting, 6=drying, 15=drying_high | Runtime phase |
-| `operating_mode` | 0=standby, 1=no_program, 2=laundry_program | Program state |
-| `room_drying_enabled` | 0/1 | Room drying active |
-| `target_humidity_level` | 0=very_dry, 1=dry, 2=medium, 3=moist | Target moisture |
-| `target_humidity_level_locked` | 0/1 | Lock on target moisture slider |
-| `hmi_backlight` | 0/1 | Device display backlight |
-| `eye_seeing_object` | 0/1 | Proximity/laundry detection sensor |
-| `next_start` | ISO timestamp or 0 | Scheduled start (0 = none) |
-| `error_list` | [] | Active errors |
-| `serial_number` | 43.16554 | Serial number |
-| `fw_version` | 0.3.06 | Firmware version |
-
 ## Features
 
-**Sensors:**
-- Temperature
-- Humidity
+**Controls**
+- Laundry Drying switch (auto mode)
+- Room Drying switch
+- Start Manual Drying button (immediate start)
+- `secomat.start_drying` service with optional `delay_seconds` (0-86400, scheduled start for automations)
+- Target Moisture select (very_dry / dry / medium / moist)
+- Moisture Lock switch (matches the app's lock; the moisture select is hidden when locked)
+
+**Sensors**
+- Temperature, Humidity
 - State (ready / starting / drying / drying_high)
 - Operating Mode (standby / no_program / laundry_program)
-- Target Moisture (very_dry / dry / medium / moist - read-only)
-- Next Start (timestamp, diagnostic)
-- Error Count (diagnostic, with list attribute)
+- Target Moisture (current setting, also exposed for automations)
+- Next Start (timestamp of scheduled start, diagnostic)
+- Error Count with active error list (diagnostic)
 - Firmware (diagnostic)
 - Device Tick (diagnostic, disabled by default)
 
-**Binary sensors:**
-- Eye Detects Object (proximity)
+**Binary sensors**
+- Eye Detects Object (proximity / laundry detection)
 - Display Backlight (diagnostic)
-- Problem (on when `error_list` is non-empty, diagnostic)
+- Problem (on when an error is active, diagnostic)
 
-**Switches:**
-- Laundry Drying (on/off)
-- Room Drying (on/off)
+## Requirements
+
+- Home Assistant 2024.x or newer
+- Krüger Secomat WiFi dehumidifier
+- Claim token from the Secomat mobile app (see [Installation](#installation))
+- HACS (recommended for installation and updates)
 
 ## Installation
 
 ### HACS (recommended)
-1. Add this repository as a custom repository in HACS
+
+1. Add this repository as a custom repository in HACS (category: Integration)
 2. Install "Krüger Secomat"
 3. Restart Home Assistant
 
 ### Manual
+
 1. Copy `custom_components/secomat/` to your HA `custom_components/` directory
 2. Restart Home Assistant
 
+After installation, see [Configuration](#configuration) to add the integration.
+
+## Updating
+
+- HACS: open HACS, update the integration, restart Home Assistant
+- Manual: replace the `custom_components/secomat/` directory with the new version and restart
+
 ## Configuration
 
-1. Go to **Settings → Devices & Services → Add Integration**
-2. Search for **"Krüger Secomat"**
-3. Enter your **Claim Token**
+### Add the integration
 
-## How to get the Claim Token
+1. Settings → Devices & Services → Add Integration
+2. Search for "Krüger Secomat"
+3. Enter your claim token (see below)
 
-The claim token authenticates your requests to the Secomat Cloud API. To obtain it:
+### Obtaining the claim token
 
-1. Install `mitmproxy` on a computer in your local network
+The Secomat device has no open ports, so the integration talks to the Krüger Cloud API on your behalf. Authentication uses a `claim-token` header that the official mobile app sends with every request. Intercept it once with mitmproxy:
+
+1. Install mitmproxy on a computer in your local network:
    ```bash
    sudo apt install mitmproxy
    ```
@@ -106,29 +87,55 @@ The claim token authenticates your requests to the Secomat Cloud API. To obtain 
    ```bash
    sudo bash -c 'ulimit -n 65536 && mitmdump --listen-port 8888 --ssl-insecure'
    ```
-3. On your phone (iPhone/Android):
-   - Go to **WiFi Settings → Proxy → Manual**
-   - Server: `<your-computer-ip>`, Port: `8888`
-4. Open browser → go to `http://mitm.it` → install & trust the CA certificate
-   - **iOS**: Settings → General → About → Certificate Trust Settings → enable mitmproxy
-5. Open the **Secomat app** and interact with it
-6. In the mitmproxy log, look for requests to `seco.krueger.ch:8080`
-7. The `claim-token` header value is your token
-8. **Disable the proxy** on your phone when done!
+3. On your phone, set a manual HTTP proxy: server = your computer's IP, port = 8888 (WiFi settings → Proxy → Manual).
+4. Open `http://mitm.it` on the phone and install the mitmproxy CA certificate. On iOS: Settings → General → About → Certificate Trust Settings → enable mitmproxy.
+5. Open the Secomat app and interact with it for a few seconds.
+6. In the mitmdump log, find requests to `seco.krueger.ch:8080`. The `claim-token` header value is your token.
+7. Disable the manual proxy on the phone.
 
-## How it was built
+Treat the token like a password: it grants full control over your device. Home Assistant stores it encrypted at rest in the config entry.
 
-1. Found the Secomat on the network: ESP32-based, no open ports
-2. Intercepted the official app's traffic with mitmproxy
-3. Reverse-engineered the Cloud API at `seco.krueger.ch:8080`
-4. Built this HA integration around it
+## How it works
 
-Reverse-engineered February 2026. Cloud-polling, 30s interval.
+```mermaid
+flowchart LR
+  HA["Home Assistant<br/>(this integration)"]
+  Cloud["Krüger Cloud<br/>seco.krueger.ch:8080"]
+  Device["Secomat<br/>(WiFi, no open ports)"]
 
-## Issues / Help
+  HA -->|"GET state every 30s"| Cloud
+  HA -->|"POST commands"| Cloud
+  Cloud <-->|"manufacturer protocol"| Device
+```
 
-Report bugs or request features at [GitHub Issues](https://github.com/xenofex7/ha-kruger-secomat/issues).
+The device has no open ports and no documented local API. The official Secomat app talks to a cloud endpoint at `seco.krueger.ch:8080`; this integration replays the same HTTP requests. Authentication is a static `claim-token` header that you extract once from the app (see [Obtaining the claim token](#obtaining-the-claim-token)).
+
+State is polled every 30 seconds; commands are fire-and-forget with an immediate state refresh after each success. See [docs/API.md](docs/API.md) for the full command list and field reference.
+
+## Development
+
+```bash
+git clone https://github.com/xenofex7/ha-kruger-secomat.git
+cd ha-kruger-secomat
+python3 -m venv .venv
+source .venv/bin/activate
+pip install aiohttp
+```
+
+`test.py` is a standalone API client for hitting the cloud without Home Assistant - useful for reverse-engineering and verifying commands on a real device.
+
+```bash
+# Token from .env (SECOMAT_TOKEN=...) or first argument
+python3 test.py                  # current state
+python3 test.py -i               # interactive command tester
+python3 test.py --new-commands   # guided verification of PR #1 commands
+```
+
+## Credits
+
+- [@alexef](https://github.com/alexef) reverse-engineered the `PRG_WASH_MANUAL_ON` command and contributed the initial button and select platforms (PR #1).
+- [@ratsch](https://github.com/ratsch/ha-kruger-secomat) reverse-engineered the `PARAMETER_CHANGE` command for moisture target and lock, and the `PRG_WASH_MANUAL_OFF` cancel command.
 
 ## License
 
-MIT
+MIT.
