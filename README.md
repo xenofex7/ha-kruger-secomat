@@ -1,8 +1,19 @@
-# 🌡️ Krüger Secomat - Home Assistant Integration
+# Krüger Secomat - Home Assistant Integration
 
-Home Assistant integration for the [Krüger Secomat](https://www.krueger.ch/secomat/) WiFi dehumidifier. Exposes sensors (temperature, humidity, state) and switches (laundry/room drying) via the official Krüger Cloud API.
+<p align="center">
+  <img src="assets/logo.png" alt="Krüger Secomat" width="160">
+</p>
 
-**Requires:** a Krüger Secomat device, Home Assistant 2024.x or newer, and a claim token (see below).
+<p align="center">
+  <a href="https://github.com/xenofex7/ha-kruger-secomat/tags"><img src="https://img.shields.io/github/v/tag/xenofex7/ha-kruger-secomat?sort=semver&label=version" alt="latest tag"></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="license">
+  <img src="https://img.shields.io/badge/HACS-custom-41bdf5" alt="HACS">
+  <img src="https://img.shields.io/badge/Home%20Assistant-2024.x+-03a9f4?logo=home-assistant&logoColor=white" alt="Home Assistant">
+  <img src="https://img.shields.io/github/last-commit/xenofex7/ha-kruger-secomat" alt="last commit">
+  <img src="https://img.shields.io/github/commit-activity/y/xenofex7/ha-kruger-secomat" alt="commit activity">
+</p>
+
+Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exposes sensors, switches, a moisture-target select and a manual-start button via the Krüger Cloud API. Cloud-polled at 30-second intervals, no local device communication required (the device has no open ports).
 
 ## API Overview
 
