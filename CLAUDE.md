@@ -47,13 +47,14 @@ Available commands sent via `api.send_command(command, args)`:
 |---------|------|-------------|
 | `OFF` | None | Turn off device |
 | `PRG_WASH_AUTO` | None | Start laundry drying (auto) |
+| `PRG_WASH_MANUAL_ON` | `{"prg_wash_starttime": <delay_seconds>}` | Start laundry drying (manual); value is seconds from now until start (0 = immediate). Verified on hardware. |
 | `PRG_WASH_TIMER` | None | Start laundry drying (timer) |
 | `PRG_ROOM_ON` | None | Enable room drying |
 | `PRG_ROOM_OFF` | None | Disable room drying |
+| `PARAMETER_CHANGE` | `{"residual_moisture_target": 0-3}` | Set target moisture level (credit: @ratsch) |
+| `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Lock/unlock moisture slider (credit: @ratsch) |
 
 Commands that exist in the app but are not yet reverse-engineered:
-- Set target humidity level
-- Toggle target-humidity lock
 - Toggle HMI backlight ("Control Lights" button)
 
 ## State Mappings
