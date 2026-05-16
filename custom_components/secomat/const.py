@@ -34,6 +34,9 @@ CMD_ROOM_ON = "PRG_ROOM_ON"
 CMD_ROOM_OFF = "PRG_ROOM_OFF"
 CMD_PARAMETER_CHANGE = "PARAMETER_CHANGE"
 
+# Services
+SERVICE_START_DRYING = "start_drying"
+
 # Target humidity levels (slider has 4 positions in the official app)
 HUMIDITY_LEVELS = {
     0: "very_dry",

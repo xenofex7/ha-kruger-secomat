@@ -16,5 +16,17 @@
     "abort": {
       "already_configured": "This Secomat is already configured."
     }
+  },
+  "services": {
+    "start_drying": {
+      "name": "Start Drying",
+      "description": "Start manual laundry drying, optionally delayed.",
+      "fields": {
+        "delay_seconds": {
+          "name": "Delay",
+          "description": "Seconds from now until the drying program starts. 0 means start immediately."
+        }
+      }
+    }
   }
 }

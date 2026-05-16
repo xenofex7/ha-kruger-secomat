@@ -1,0 +1,25 @@
+start_drying:
+  name: Start Drying
+  description: >-
+    Start manual laundry drying. Optionally delay the start by a number of
+    seconds (0 = start immediately).
+  target:
+    entity:
+      integration: secomat
+      domain: button
+  fields:
+    delay_seconds:
+      name: Delay
+      description: >-
+        Seconds from now until the drying program starts. 0 means start
+        immediately. Maximum 86400 (24 hours).
+      default: 0
+      required: false
+      example: 3600
+      selector:
+        number:
+          min: 0
+          max: 86400
+          step: 60
+          unit_of_measurement: s
+          mode: box

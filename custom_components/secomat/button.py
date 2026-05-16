@@ -3,17 +3,23 @@ from __future__ import annotations
 
 import logging
 
+import voluptuous as vol
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import SecomatAPIError
-from .const import DOMAIN
+from .const import DOMAIN, SERVICE_START_DRYING
 from .coordinator import SecomatCoordinator
 
 _LOGGER = logging.getLogger(__name__)
+
+# Upper bound = 24h. The device accepts larger values, but a one-day window
+# is the sane practical limit and protects against typos like 360000.
+_MAX_DELAY_SECONDS = 24 * 60 * 60
 
 
 async def async_setup_entry(
@@ -26,6 +32,17 @@ async def async_setup_entry(
     serial = coordinator.data.get("serial_number", "unknown")
 
     async_add_entities([SecomatManualButton(coordinator, entry, serial)])
+
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        SERVICE_START_DRYING,
+        {
+            vol.Optional("delay_seconds", default=0): vol.All(
+                vol.Coerce(int), vol.Range(min=0, max=_MAX_DELAY_SECONDS)
+            ),
+        },
+        "async_start_drying",
+    )
 
 
 class SecomatBaseButton(CoordinatorEntity[SecomatCoordinator], ButtonEntity):
@@ -56,8 +73,16 @@ class SecomatManualButton(SecomatBaseButton):
         self._attr_unique_id = f"{serial}_start_manual"
 
     async def async_press(self) -> None:
+        await self.async_start_drying(delay_seconds=0)
+
+    async def async_start_drying(self, delay_seconds: int = 0) -> None:
+        """Start manual drying, optionally after delay_seconds."""
         try:
-            await self.coordinator.api.start_laundry_drying_manual()
+            await self.coordinator.api.start_laundry_drying_manual(delay_seconds)
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to start manual drying: %s", err)
+            _LOGGER.error(
+                "Failed to start manual drying (delay_seconds=%s): %s",
+                delay_seconds,
+                err,
+            )
