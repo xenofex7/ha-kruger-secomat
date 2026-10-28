@@ -10,7 +10,6 @@ Token is read from (in order): CLI arg, SECOMAT_TOKEN env var, .env file.
 Usage:
   python3 test.py [<claim-token>]                # Run basic tests
   python3 test.py [<claim-token>] -i             # Interactive mode
-  python3 test.py [<claim-token>] --all          # Test all command variations
   python3 test.py [<claim-token>] --new-commands # Test PR #1 commands
 """
 import asyncio
@@ -169,7 +168,7 @@ async def run_basic_tests(claim_token):
         print("  - OFF")
         print("  - PRG_WASH_AUTO")
         print("  - PRG_ROOM_ON")
-        print("  - SET_TARGET_HUMIDITY")
+        print("  - PARAMETER_CHANGE residual_moisture_target=2")
 
         # await test_command(api, "OFF")
         # await asyncio.sleep(2)
@@ -206,7 +205,7 @@ async def run_interactive(claim_token):
         print("\nExamples:")
         print("  OFF")
         print("  PRG_WASH_AUTO")
-        print("  SET_TARGET_HUMIDITY level=2")
+        print("  PARAMETER_CHANGE residual_moisture_target=2")
         print("  PRG_ROOM_ON")
         print()
 
@@ -257,88 +256,7 @@ async def run_interactive(claim_token):
 
 
 # ============================================================================
-# Comprehensive Command Testing
-# ============================================================================
-
-async def test_raw_command(session, headers, command, args=None):
-    """Test a single command using raw HTTP."""
-    API_BASE_URL = "https://seco.krueger.ch:8080/app1/v1/plc"
-    payload = {"command": command, "args": args or {}}
-
-    try:
-        async with session.post(
-            API_BASE_URL,
-            headers=headers,
-            json=payload,
-            ssl=True,
-            timeout=aiohttp.ClientTimeout(total=10),
-        ) as response:
-            result = await response.json()
-
-            if response.status == 200:
-                print(f"✅ {command:30} {str(args):40} -> {result}")
-                return True
-            else:
-                print(f"❌ {command:30} {str(args):40} -> Status {response.status}")
-                return False
-    except Exception as err:
-        print(f"⚠️  {command:30} {str(args):40} -> Error: {err}")
-        return False
-
-
-async def run_all_tests(claim_token):
-    """Test all possible command variations (for development)."""
-    print(f"🔧 Testing ALL command variations - Token: {claim_token[:10]}...")
-
-    headers = {
-        "claim-token": claim_token,
-        "api": "1",
-        "accept": "*/*",
-        "content-type": "application/json",
-        "user-agent": "Secomat/1.0.3 HA-Integration",
-    }
-
-    API_BASE_URL = "https://seco.krueger.ch:8080/app1/v1/plc"
-
-    async with aiohttp.ClientSession() as session:
-        # Get current state
-        async with session.get(API_BASE_URL, headers=headers, ssl=True) as response:
-            data = await response.json()
-            state = data.get("payload", {})
-            print(f"\nCurrent: secomat_state={state.get('secomat_state')}, "
-                  f"target_humidity_level={state.get('target_humidity_level')}")
-            print()
-
-        print("="*80)
-        print("Testing command variations with different prefixes and arg names...")
-        print("="*80)
-        print()
-
-        # Test various command/arg combinations
-        prefixes = ["", "CMD_", "PRG_", "SET_"]
-        bases = ["TARGET_HUMIDITY", "HUMIDITY_LEVEL", "HUMIDITY", "MOISTURE"]
-
-        for prefix in prefixes:
-            for base in bases:
-                cmd = f"{prefix}{base}"
-                await test_raw_command(session, headers, cmd, {"level": 2})
-                await asyncio.sleep(0.2)
-
-        print("\nTesting different argument names...")
-        arg_variations = [
-            {"level": 2},
-            {"value": 2},
-            {"target_humidity_level": 2},
-            {"humidity_level": 2},
-        ]
-
-        for args in arg_variations:
-            await test_raw_command(session, headers, "SET_TARGET_HUMIDITY", args)
-            await asyncio.sleep(0.2)
-
-
-# ============================================================================
-# PR #1 New Commands — guided test sequence
+# PR #1 New Commands - guided test sequence
 # ============================================================================
 
 async def _confirm(prompt: str) -> bool:
@@ -361,7 +279,7 @@ async def _show_state(api: "SecomatAPI", label: str) -> dict:
 
 async def run_new_commands(claim_token: str) -> None:
     """Interactively verify the commands introduced in PR #1."""
-    print(f"🧪 PR #1 command verification — token: {claim_token[:10]}...")
+    print(f"🧪 PR #1 command verification - token: {claim_token[:10]}...")
     print("Each step prompts before sending. Skip with 'n', run with 'y'.\n")
 
     api = SecomatAPI(claim_token)
@@ -421,7 +339,7 @@ async def run_new_commands(claim_token: str) -> None:
 # ============================================================================
 
 def _load_dotenv(path: Path) -> None:
-    """Minimal .env loader — KEY=VALUE per line, no quoting magic."""
+    """Minimal .env loader - KEY=VALUE per line, no quoting magic."""
     if not path.is_file():
         return
     for raw in path.read_text().splitlines():
@@ -453,7 +371,6 @@ def print_usage():
     print("\nAvailable modes:")
     print("  (default)        Run basic API tests")
     print("  -i               Interactive command testing")
-    print("  --all            Test all possible command variations")
     print("  --new-commands   Guided verification of PR #1 commands")
     print("\nExamples:")
     print("  python3 test.py abc123def456")
@@ -477,8 +394,6 @@ async def main():
 
     if mode in ("-i", "--interactive"):
         await run_interactive(claim_token)
-    elif mode == "--all":
-        await run_all_tests(claim_token)
     elif mode == "--new-commands":
         await run_new_commands(claim_token)
     else:

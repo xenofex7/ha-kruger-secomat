@@ -133,6 +133,12 @@ python3 test.py -i               # interactive command tester
 python3 test.py --new-commands   # guided verification of PR #1 commands
 ```
 
+`watch.py` polls the state every 2 seconds and prints only the fields that changed - handy for mapping state codes while you press buttons in the app.
+
+```bash
+SECOMAT_TOKEN=... python3 watch.py
+```
+
 ## Credits
 
 - [@alexef](https://github.com/alexef) reverse-engineered the `PRG_WASH_MANUAL_ON` command and contributed the initial button and select platforms (PR #1).

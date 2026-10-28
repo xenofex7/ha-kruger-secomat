@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Live-watcher for Secomat state. Polls every 2s, prints on change."""
 import asyncio
+import os
 import sys
 from datetime import datetime
 
@@ -30,7 +31,7 @@ async def main(token: str) -> None:
     }
     prev: dict = {}
     async with aiohttp.ClientSession() as session:
-        print("Watching Secomat — change modes in the app, I print diffs only.")
+        print("Watching Secomat - change modes in the app, I print diffs only.")
         print(f"Fields: {', '.join(WATCH_FIELDS)}\n")
         while True:
             try:
@@ -60,10 +61,11 @@ async def main(token: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("usage: watch.py <token>")
+    token = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("SECOMAT_TOKEN")
+    if not token:
+        print("usage: watch.py [<token>]  (or set SECOMAT_TOKEN)")
         sys.exit(1)
     try:
-        asyncio.run(main(sys.argv[1]))
+        asyncio.run(main(token))
     except KeyboardInterrupt:
         print("\nstopped.")
