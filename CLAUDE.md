@@ -24,7 +24,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 - `SecomatAPI` class handles all HTTP communication with Krüger Cloud
 - Uses Home Assistant's shared aiohttp session (`async_get_clientsession`), passed in by the caller
 - All methods are async and use 10-second timeouts
-- Custom exception: `SecomatAPIError` for all API failures
+- Custom exceptions: `SecomatAPIError` for all API failures, `SecomatAuthError` (subclass) when the cloud rejects the token (401/403)
 
 **Coordinator** (`coordinator.py`):
 - `SecomatCoordinator` extends `DataUpdateCoordinator`

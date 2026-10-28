@@ -16,6 +16,10 @@ class SecomatAPIError(Exception):
     """Secomat API error."""
 
 
+class SecomatAuthError(SecomatAPIError):
+    """Claim token rejected by the Secomat cloud."""
+
+
 class SecomatAPI:
     """Krüger Secomat API client."""
 
@@ -44,6 +48,8 @@ class SecomatAPI:
                 ssl=True,
                 timeout=aiohttp.ClientTimeout(total=10),
             ) as response:
+                if response.status in (401, 403):
+                    raise SecomatAuthError(f"API returned {response.status}")
                 if response.status != 200:
                     raise SecomatAPIError(f"API returned {response.status}")
                 data = await response.json()
@@ -115,11 +121,3 @@ class SecomatAPI:
     async def stop_room_drying(self) -> None:
         """Stop room drying."""
         await self.send_command("PRG_ROOM_OFF")
-
-    async def validate_connection(self) -> bool:
-        """Validate the API connection."""
-        try:
-            state = await self.get_state()
-            return "serial_number" in state
-        except SecomatAPIError:
-            return False

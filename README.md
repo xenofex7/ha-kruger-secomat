@@ -75,6 +75,8 @@ After installation, see [Configuration](#configuration) to add the integration.
 2. Search for "Krüger Secomat"
 3. Enter your claim token (see below)
 
+To replace the claim token later, add the integration again with the new token. The existing entry is updated and reloaded; entities and their settings stay.
+
 ### Obtaining the claim token
 
 The Secomat device has no open ports, so the integration talks to the Krüger Cloud API on your behalf. Authentication uses a `claim-token` header that the official mobile app sends with every request. Intercept it once with mitmproxy:

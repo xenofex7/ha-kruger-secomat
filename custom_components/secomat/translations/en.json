@@ -10,11 +10,12 @@
       }
     },
     "error": {
-      "invalid_auth": "Invalid claim token - could not connect to Secomat.",
+      "invalid_auth": "Invalid claim token.",
+      "cannot_connect": "Could not reach the Krüger Cloud. Try again later.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
-      "already_configured": "This Secomat is already configured."
+      "already_configured": "This Secomat is already configured. Its claim token has been updated."
     }
   },
   "services": {
