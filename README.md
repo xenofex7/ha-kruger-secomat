@@ -44,7 +44,7 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 
 - Home Assistant 2024.x or newer
 - Krüger Secomat WiFi dehumidifier
-- Claim token from the Secomat mobile app (see [Installation](#installation))
+- Claim token from the Secomat mobile app (see [Obtaining the claim token](#obtaining-the-claim-token))
 - HACS (recommended for installation and updates)
 
 ## Installation
@@ -95,7 +95,7 @@ The Secomat device has no open ports, so the integration talks to the Krüger Cl
 6. In the mitmdump log, find requests to `seco.krueger.ch:8080`. The `claim-token` header value is your token.
 7. Disable the manual proxy on the phone.
 
-Treat the token like a password: it grants full control over your device. Home Assistant stores it encrypted at rest in the config entry.
+Treat the token like a password: it grants full control over your device. Home Assistant stores it unencrypted in its config storage (`.storage/core.config_entries`), so keep backups of your configuration private.
 
 ## How it works
 

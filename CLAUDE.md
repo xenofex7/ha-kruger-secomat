@@ -149,7 +149,7 @@ POST command returns:
 ## Important Notes
 
 - **No local device communication**: Device has no open ports, all communication goes through Krüger Cloud
-- **Token security**: Claim token is stored in HA config entry (encrypted at rest)
+- **Token security**: Claim token is stored unencrypted in the HA config entry (`.storage/core.config_entries`)
 - **Entity naming**: Uses `has_entity_name = True` pattern (HA 2022.9+)
 - **Unique ID format**: `{serial_number}_{entity_type}` prevents duplicate entities
 - **Device info**: Defined once in `SecomatEntity`
