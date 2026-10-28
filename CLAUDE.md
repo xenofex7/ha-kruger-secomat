@@ -24,7 +24,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 - `SecomatAPI` class handles all HTTP communication with Krüger Cloud
 - Uses Home Assistant's shared aiohttp session (`async_get_clientsession`), passed in by the caller
 - All methods are async and use 10-second timeouts
-- Custom exceptions: `SecomatAPIError` for all API failures, `SecomatAuthError` (subclass) when the cloud rejects the token (401/403)
+- Custom exceptions: `SecomatAPIError` for all API failures, `SecomatAuthError` (subclass), raised by `get_state` on 401/403
 
 **Coordinator** (`coordinator.py`):
 - `SecomatCoordinator` extends `DataUpdateCoordinator`
@@ -51,7 +51,7 @@ Available commands sent via `api.send_command(command, args)`:
 | `PRG_WASH_AUTO` | None | Start laundry drying (auto) |
 | `PRG_WASH_MANUAL_ON` | `{"prg_wash_starttime": <delay_seconds>}` | Start laundry drying (manual); value is seconds from now until start (0 = immediate). Verified on hardware. |
 | `PRG_WASH_MANUAL_OFF` | None | Cancel a pending delayed manual start (verified on hardware, not used by the integration yet) |
-| `PRG_WASH_TIMER` | None | Start laundry drying (timer) |
+| `PRG_WASH_TIMER` | None | Start laundry drying (timer, not used by the integration) |
 | `PRG_ROOM_ON` | None | Enable room drying |
 | `PRG_ROOM_OFF` | None | Disable room drying |
 | `PARAMETER_CHANGE` | `{"residual_moisture_target": 0-3}` | Set target moisture level (credit: @ratsch) |
@@ -76,11 +76,11 @@ Defined in `const.py` (reverse-engineered by live observation; gaps remain):
 ## Development Commands
 
 ### Testing the Integration
-There are no automated tests. Verify against the real device with the standalone scripts (token from `.env` or `SECOMAT_TOKEN`):
+There are no automated tests. Verify against the real device with the standalone scripts (`test.py` reads the token from `.env` or `SECOMAT_TOKEN`, `watch.py` only from `SECOMAT_TOKEN` or the first argument):
 ```bash
 python3 test.py       # current state
 python3 test.py -i    # interactive command tester
-python3 watch.py      # print state changes live
+SECOMAT_TOKEN=... python3 watch.py   # print state changes live
 ```
 
 ### Local Installation

@@ -91,5 +91,5 @@ Non-OK status or HTTP error codes indicate a malformed command, an unknown comma
 ## Notes
 
 - The integration polls `GET` every 30 seconds.
-- All `POST` commands are fire-and-forget; the integration triggers a state refresh after each successful command to pick up the new state.
+- Each `POST` command must return `{"status": "OK"}`, otherwise the integration raises an error in Home Assistant. After a successful command it refreshes the state.
 - Timeouts are set to 10 seconds per request.

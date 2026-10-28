@@ -23,7 +23,7 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 - Start Manual Drying button (immediate start)
 - `secomat.start_drying` service with optional `delay_seconds` (0-86400, scheduled start for automations)
 - Target Moisture select (very_dry / dry / medium / moist)
-- Moisture Lock switch (matches the app's lock; the moisture select is hidden when locked)
+- Moisture Lock switch (configuration; matches the app's lock, the moisture select is unavailable while locked)
 
 **Sensors**
 - Temperature, Humidity
@@ -112,7 +112,7 @@ flowchart LR
 
 The device has no open ports and no documented local API. The official Secomat app talks to a cloud endpoint at `seco.krueger.ch:8080`; this integration replays the same HTTP requests. Authentication is a static `claim-token` header that you extract once from the app (see [Obtaining the claim token](#obtaining-the-claim-token)).
 
-State is polled every 30 seconds; commands are fire-and-forget with an immediate state refresh after each success. See [docs/API.md](docs/API.md) for the full command list and field reference.
+State is polled every 30 seconds. Each command must be answered with `{"status": "OK"}`, otherwise the action fails with an error in Home Assistant; after a successful command the state is refreshed immediately. See [docs/API.md](docs/API.md) for the full command list and field reference.
 
 ## Development
 
