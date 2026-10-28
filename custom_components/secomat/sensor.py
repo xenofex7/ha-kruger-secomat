@@ -73,6 +73,7 @@ class SecomatTemperatureSensor(SecomatBaseSensor):
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_suggested_display_precision = 1
 
     def __init__(self, coordinator, entry, serial):
         super().__init__(coordinator, entry, serial)
@@ -81,8 +82,7 @@ class SecomatTemperatureSensor(SecomatBaseSensor):
     @property
     def native_value(self) -> float | None:
         """Return the temperature."""
-        val = self.coordinator.data.get("ambient_temperature")
-        return round(val, 1) if val is not None else None
+        return self.coordinator.data.get("ambient_temperature")
 
 
 class SecomatHumiditySensor(SecomatBaseSensor):
@@ -92,6 +92,7 @@ class SecomatHumiditySensor(SecomatBaseSensor):
     _attr_device_class = SensorDeviceClass.HUMIDITY
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_suggested_display_precision = 1
 
     def __init__(self, coordinator, entry, serial):
         super().__init__(coordinator, entry, serial)
@@ -100,8 +101,7 @@ class SecomatHumiditySensor(SecomatBaseSensor):
     @property
     def native_value(self) -> float | None:
         """Return the humidity."""
-        val = self.coordinator.data.get("humidity")
-        return round(val, 1) if val is not None else None
+        return self.coordinator.data.get("humidity")
 
 
 class SecomatStateSensor(SecomatBaseSensor):
@@ -213,7 +213,6 @@ class SecomatNextStartSensor(SecomatBaseSensor):
     _attr_name = "Next Start"
     _attr_icon = "mdi:timer-play-outline"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator, entry, serial):
         super().__init__(coordinator, entry, serial)
@@ -222,7 +221,7 @@ class SecomatNextStartSensor(SecomatBaseSensor):
     @property
     def native_value(self) -> datetime | None:
         raw = self.coordinator.data.get("next_start")
-        if not raw or raw == 0:
+        if not raw:
             return None
         try:
             # Device sends ISO-8601 with 'Z' suffix; drop millisecond jitter.

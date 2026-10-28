@@ -77,7 +77,6 @@ class SecomatBacklightBinarySensor(SecomatBaseBinarySensor):
     """Reports whether the HMI backlight is on."""
 
     _attr_name = "Display Backlight"
-    _attr_device_class = BinarySensorDeviceClass.LIGHT
     _attr_icon = "mdi:monitor-shimmer"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 

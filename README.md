@@ -30,7 +30,7 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 - State (ready / starting / drying / drying_high)
 - Operating Mode (standby / no_program / laundry_program)
 - Target Moisture (current setting, also exposed for automations)
-- Next Start (timestamp of scheduled start, diagnostic)
+- Next Start (timestamp of scheduled start)
 - Error Count with active error list (diagnostic)
 - Firmware (diagnostic)
 - Device Tick (diagnostic, disabled by default)
