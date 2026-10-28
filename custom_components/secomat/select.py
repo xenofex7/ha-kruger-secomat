@@ -27,7 +27,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Secomat select entities."""
     coordinator: SecomatCoordinator = hass.data[DOMAIN][entry.entry_id]
-    serial = coordinator.data.get("serial_number", "unknown")
+    serial = entry.unique_id
     async_add_entities([SecomatTargetMoistureSelect(coordinator, entry, serial)])
 
 
