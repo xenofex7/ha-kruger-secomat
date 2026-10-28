@@ -1,0 +1,160 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifiers. The integration communicates with Secomat devices through the Krüger Cloud API at `seco.krueger.ch:8080`.
+
+**Authentication**: Uses a `claim-token` header obtained by intercepting the official Secomat mobile app traffic with mitmproxy.
+
+**Architecture**: Cloud polling integration (IoT class: `cloud_polling`) with a 30-second update interval.
+
+## Core Architecture
+
+### Component Flow
+1. **Config Flow** (`config_flow.py`) → Validates claim token and sets up entry
+2. **Integration Setup** (`__init__.py`) → Creates API client and coordinator
+3. **Coordinator** (`coordinator.py`) → Manages polling and data updates
+4. **Platform Entities** (`sensor.py`, `binary_sensor.py`, `switch.py`, `select.py`, `button.py`) → Expose device state to HA
+
+### Key Components
+
+**API Client** (`api.py`):
+- `SecomatAPI` class handles all HTTP communication with Krüger Cloud
+- Uses Home Assistant's shared aiohttp session (`async_get_clientsession`), passed in by the caller
+- All methods are async and use 10-second timeouts
+- Custom exceptions: `SecomatAPIError` for all API failures, `SecomatAuthError` (subclass), raised by `get_state` on 401/403
+
+**Coordinator** (`coordinator.py`):
+- `SecomatCoordinator` extends `DataUpdateCoordinator`
+- Polls `api.get_state()` every 30 seconds (configurable in `const.py`)
+- Returns dict with device state (temperature, humidity, mode, etc.)
+- Converts `SecomatAPIError` to `UpdateFailed` for HA error handling
+
+**Platforms**:
+- **Sensors**: Temperature, Humidity, State, Operating Mode, Firmware, Target Moisture, Error Count, Next Start, Device Tick
+- **Binary Sensors**: Eye Detects Object, Display Backlight, Problem
+- **Switches**: Laundry Drying, Room Drying, Moisture Lock
+- **Select**: Target Moisture
+- **Button**: Start Manual Drying, plus the entity service `secomat.start_drying` (`delay_seconds`)
+
+All entity classes inherit from `SecomatEntity` (`entity.py`, a `CoordinatorEntity`), which sets the unique ID and device info.
+
+## API Commands
+
+Available commands sent via `api.send_command(command, args)`:
+
+| Command | Args | Description |
+|---------|------|-------------|
+| `OFF` | None | Turn off device |
+| `PRG_WASH_AUTO` | None | Start laundry drying (auto) |
+| `PRG_WASH_MANUAL_ON` | `{"prg_wash_starttime": <delay_seconds>}` | Start laundry drying (manual); value is seconds from now until start (0 = immediate). Verified on hardware. |
+| `PRG_WASH_MANUAL_OFF` | None | Cancel a pending delayed manual start (verified on hardware, not used by the integration yet) |
+| `PRG_WASH_TIMER` | None | Start laundry drying (timer, not used by the integration) |
+| `PRG_ROOM_ON` | None | Enable room drying |
+| `PRG_ROOM_OFF` | None | Disable room drying |
+| `PARAMETER_CHANGE` | `{"residual_moisture_target": 0-3}` | Set target moisture level (credit: @ratsch) |
+| `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Toggle the app's "For all drying processes" lock; does not block moisture changes (credit: @ratsch) |
+
+Commands that exist in the app but are not yet reverse-engineered:
+- Toggle HMI backlight ("Control Lights" button)
+
+## State Mappings
+
+Defined in `const.py` (reverse-engineered by live observation; gaps remain):
+
+**Secomat States** (`secomat_state`):
+- 0=ready, 2=starting, 5=starting (brief transition), 6=drying, 15=drying_high
+
+**Operating Modes** (`operating_mode`):
+- 0=standby, 1=no_program, 2=laundry_program
+
+**Humidity Levels** (`target_humidity_level`):
+- 0=very_dry, 1=dry, 2=medium, 3=moist
+
+## Development Commands
+
+### Testing the Integration
+There are no automated tests. Verify against the real device with the standalone scripts (`test.py` reads the token from `.env` or `SECOMAT_TOKEN`, `watch.py` only from `SECOMAT_TOKEN` or the first argument):
+```bash
+python3 test.py       # current state
+python3 test.py -i    # interactive command tester
+SECOMAT_TOKEN=... python3 watch.py   # print state changes live
+```
+
+### Local Installation
+```bash
+# Copy to HA config directory
+cp -r custom_components/secomat /path/to/homeassistant/config/custom_components/
+
+# Restart Home Assistant
+# Use HA UI or CLI depending on installation method
+```
+
+### Debugging
+- Enable debug logging in HA `configuration.yaml`:
+  ```yaml
+  logger:
+    default: info
+    logs:
+      custom_components.secomat: debug
+  ```
+- Check logs: `~/.homeassistant/home-assistant.log` or via HA UI
+
+## Code Patterns
+
+### Adding New API Commands
+1. Add command constant to `const.py`
+2. Add method to `SecomatAPI` class in `api.py`
+3. Use in platform entity (sensor/switch/select)
+
+### Adding New Entities
+1. Create a class inheriting from `SecomatEntity` and the HA platform entity (e.g. `SensorEntity`)
+2. Set `_key`; the unique ID becomes `f"{serial}_{_key}"`
+3. Implement required properties (`native_value`, `is_on`, etc.)
+4. Add to entity list in platform's `async_setup_entry()`
+
+### Session Management
+- `SecomatAPI` requires a session; always pass `async_get_clientsession(hass)`
+- The shared session is owned by Home Assistant, so never close it
+
+## API Response Format
+
+GET request returns:
+```json
+{
+  "type": "STATE",
+  "payload": {
+    "now": 13256016,
+    "secomat_state": 6,
+    "operating_mode": 2,
+    "room_drying_enabled": 1,
+    "ambient_temperature": 20.87,
+    "humidity": 50.50,
+    "next_start": 0,
+    "target_humidity_level": 1,
+    "target_humidity_level_locked": 1,
+    "hmi_backlight": 0,
+    "eye_seeing_object": 1,
+    "error_list": [],
+    "fw_version": "0.3.06",
+    "serial_number": "43.16554"
+  }
+}
+```
+
+POST command returns:
+```json
+{
+  "status": "OK"
+}
+```
+
+## Important Notes
+
+- **No local device communication**: Device has no open ports, all communication goes through Krüger Cloud
+- **Token security**: Claim token is stored unencrypted in the HA config entry (`.storage/core.config_entries`)
+- **Entity naming**: Uses `has_entity_name = True` pattern (HA 2022.9+)
+- **Unique ID format**: `{serial_number}_{entity_type}` prevents duplicate entities
+- **Device info**: Defined once in `SecomatEntity`
