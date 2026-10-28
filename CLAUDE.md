@@ -55,7 +55,7 @@ Available commands sent via `api.send_command(command, args)`:
 | `PRG_ROOM_ON` | None | Enable room drying |
 | `PRG_ROOM_OFF` | None | Disable room drying |
 | `PARAMETER_CHANGE` | `{"residual_moisture_target": 0-3}` | Set target moisture level (credit: @ratsch) |
-| `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Lock/unlock moisture slider (credit: @ratsch) |
+| `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Toggle the app's "For all drying processes" lock; does not block moisture changes (credit: @ratsch) |
 
 Commands that exist in the app but are not yet reverse-engineered:
 - Toggle HMI backlight ("Control Lights" button)

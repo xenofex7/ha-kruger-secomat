@@ -95,7 +95,7 @@ class SecomatRoomDryingSwitch(SecomatEntity, SwitchEntity):
 
 
 class SecomatMoistureLockSwitch(SecomatEntity, SwitchEntity):
-    """Lock/unlock target moisture slider (discovered by @ratsch).
+    """Toggle the app's "For all drying processes" lock (discovered by @ratsch).
 
     Uses PARAMETER_CHANGE with lock_residual_moisture_target arg.
     """

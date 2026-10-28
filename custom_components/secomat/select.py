@@ -43,15 +43,6 @@ class SecomatTargetMoistureSelect(SecomatEntity, SelectEntity):
         level = self.coordinator.data.get("target_humidity_level")
         return HUMIDITY_LEVELS.get(level)
 
-    @property
-    def available(self) -> bool:
-        # The device accepts level changes even when locked (verified on
-        # hardware), but the official app hides the slider in that case.
-        # Mirror that UX so the lock toggle stays meaningful.
-        if not super().available:
-            return False
-        return not self.coordinator.data.get("target_humidity_level_locked", 0)
-
     async def async_select_option(self, option: str) -> None:
         try:
             await self.coordinator.api.set_target_moisture(MOISTURE_LEVEL_MAP[option])

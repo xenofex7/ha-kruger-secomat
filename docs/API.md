@@ -27,7 +27,7 @@ The device itself has no open ports - all communication runs through the Krüger
 | `PRG_ROOM_ON` | none | Enable room drying |
 | `PRG_ROOM_OFF` | none | Disable room drying |
 | `PARAMETER_CHANGE` | `{"residual_moisture_target": 0..3}` | Set the target moisture level. Discovered by [@ratsch](https://github.com/ratsch/ha-kruger-secomat). |
-| `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Lock or unlock the moisture target. The device accepts changes to `residual_moisture_target` even when locked - the lock is enforced only by the official app. Discovered by [@ratsch](https://github.com/ratsch/ha-kruger-secomat). |
+| `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Toggle the lock shown next to "For all drying processes" in the app. It does not block changes: the device and the app both accept a new `residual_moisture_target` while locked. Discovered by [@ratsch](https://github.com/ratsch/ha-kruger-secomat). |
 
 ### Known but not reverse-engineered
 
@@ -67,7 +67,7 @@ The device itself has no open ports - all communication runs through the Krüger
 | `operating_mode` | `0` = standby, `1` = no_program, `2` = laundry_program | Program state |
 | `room_drying_enabled` | `0` / `1` | Room drying active |
 | `target_humidity_level` | `0` = very_dry, `1` = dry, `2` = medium, `3` = moist | Target moisture level |
-| `target_humidity_level_locked` | `0` / `1` | Lock on the moisture target (app-enforced only, see above) |
+| `target_humidity_level_locked` | `0` / `1` | Lock next to "For all drying processes" in the app (does not block changes, see above) |
 | `hmi_backlight` | `0` / `1` | Device display backlight |
 | `eye_seeing_object` | `0` / `1` | Proximity / laundry detection sensor |
 | `next_start` | ISO timestamp or `0` | Scheduled start time, `0` means no pending start |

@@ -23,7 +23,7 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 - Start Manual Drying button (immediate start)
 - `secomat.start_drying` service with optional `delay_seconds` (0-86400, scheduled start for automations)
 - Target Moisture select (very_dry / dry / medium / moist)
-- Moisture Lock switch (configuration; matches the app's lock, the moisture select is unavailable while locked)
+- Moisture Lock switch (configuration; the app's lock next to "For all drying processes", does not block moisture changes)
 
 **Sensors**
 - Temperature, Humidity
