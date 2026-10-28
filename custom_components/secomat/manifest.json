@@ -1,6 +1,7 @@
 {
   "domain": "secomat",
   "name": "Krüger Secomat",
+  "categories": ["climate.air_purifiers_humidifiers", "appliances_cleaning.laundry"],
   "codeowners": ["@xenofex7"],
   "config_flow": true,
   "dependencies": [],
