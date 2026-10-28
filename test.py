@@ -167,8 +167,7 @@ async def run_basic_tests(claim_token):
         print("Uncomment lines in test.py to test:")
         print("  - OFF")
         print("  - PRG_WASH_AUTO")
-        print("  - PRG_ROOM_ON")
-        print("  - PARAMETER_CHANGE residual_moisture_target=2")
+        print("Use 'python3 test.py -i' for other commands")
 
         # await test_command(api, "OFF")
         # await asyncio.sleep(2)

@@ -41,6 +41,7 @@ async def main(token: str) -> None:
                     ssl=True,
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as r:
+                    r.raise_for_status()
                     data = (await r.json()).get("payload", {})
             except Exception as e:
                 print(f"[{datetime.now():%H:%M:%S}] error: {e}")
