@@ -5,19 +5,16 @@ Command: PARAMETER_CHANGE with args {"residual_moisture_target": 0-3}
 """
 from __future__ import annotations
 
-import logging
-
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import SecomatAPIError
 from .const import DOMAIN, HUMIDITY_LEVELS
 from .coordinator import SecomatCoordinator
-
-_LOGGER = logging.getLogger(__name__)
 
 MOISTURE_OPTIONS = ["very_dry", "dry", "medium", "moist"]
 MOISTURE_LEVEL_MAP = {v: k for k, v in HUMIDITY_LEVELS.items()}
@@ -76,4 +73,4 @@ class SecomatTargetMoistureSelect(CoordinatorEntity[SecomatCoordinator], SelectE
             await self.coordinator.api.set_target_moisture(level)
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to set target moisture: %s", err)
+            raise HomeAssistantError(f"Failed to set target moisture: {err}") from err

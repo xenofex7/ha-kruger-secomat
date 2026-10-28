@@ -1,19 +1,16 @@
 """Switch platform for Krüger Secomat."""
 from __future__ import annotations
 
-import logging
-
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import SecomatAPIError
 from .const import DOMAIN
 from .coordinator import SecomatCoordinator
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -80,7 +77,7 @@ class SecomatPowerSwitch(SecomatBaseSwitch):
             await self.coordinator.api.start_laundry_drying()
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to turn on laundry drying: %s", err)
+            raise HomeAssistantError(f"Failed to turn on laundry drying: {err}") from err
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the Secomat."""
@@ -88,7 +85,7 @@ class SecomatPowerSwitch(SecomatBaseSwitch):
             await self.coordinator.api.turn_off()
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to turn off Secomat: %s", err)
+            raise HomeAssistantError(f"Failed to turn off Secomat: {err}") from err
 
 
 class SecomatRoomDryingSwitch(SecomatBaseSwitch):
@@ -113,7 +110,7 @@ class SecomatRoomDryingSwitch(SecomatBaseSwitch):
             await self.coordinator.api.start_room_drying()
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to turn on room drying: %s", err)
+            raise HomeAssistantError(f"Failed to turn on room drying: {err}") from err
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off room drying."""
@@ -121,7 +118,7 @@ class SecomatRoomDryingSwitch(SecomatBaseSwitch):
             await self.coordinator.api.stop_room_drying()
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to turn off room drying: %s", err)
+            raise HomeAssistantError(f"Failed to turn off room drying: {err}") from err
 
 
 class SecomatMoistureLockSwitch(SecomatBaseSwitch):
@@ -146,11 +143,11 @@ class SecomatMoistureLockSwitch(SecomatBaseSwitch):
             await self.coordinator.api.set_moisture_lock(True)
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to lock moisture: %s", err)
+            raise HomeAssistantError(f"Failed to lock moisture: {err}") from err
 
     async def async_turn_off(self, **kwargs) -> None:
         try:
             await self.coordinator.api.set_moisture_lock(False)
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error("Failed to unlock moisture: %s", err)
+            raise HomeAssistantError(f"Failed to unlock moisture: {err}") from err

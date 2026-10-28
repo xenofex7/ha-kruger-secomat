@@ -64,7 +64,7 @@ class SecomatAPI:
         except asyncio.TimeoutError as err:
             raise SecomatAPIError("Request timeout") from err
 
-    async def send_command(self, command: str, args: dict | None = None) -> bool:
+    async def send_command(self, command: str, args: dict | None = None) -> None:
         """Send a command to the Secomat."""
         session = await self._ensure_session()
         payload = {"command": command, "args": args or {}}
@@ -79,21 +79,22 @@ class SecomatAPI:
                 if response.status != 200:
                     raise SecomatAPIError(f"API returned {response.status}")
                 data = await response.json()
-                return data.get("status") == "OK"
+                if not isinstance(data, dict) or data.get("status") != "OK":
+                    raise SecomatAPIError(f"Command {command} rejected: {data}")
         except aiohttp.ClientError as err:
             raise SecomatAPIError(f"Connection error: {err}") from err
         except asyncio.TimeoutError as err:
             raise SecomatAPIError("Request timeout") from err
 
-    async def turn_off(self) -> bool:
+    async def turn_off(self) -> None:
         """Turn off the Secomat."""
-        return await self.send_command("OFF")
+        await self.send_command("OFF")
 
-    async def start_laundry_drying(self) -> bool:
+    async def start_laundry_drying(self) -> None:
         """Start laundry drying (auto mode)."""
-        return await self.send_command("PRG_WASH_AUTO")
+        await self.send_command("PRG_WASH_AUTO")
 
-    async def start_laundry_drying_manual(self, delay_seconds: int = 0) -> bool:
+    async def start_laundry_drying_manual(self, delay_seconds: int = 0) -> None:
         """Start laundry drying (manual mode).
 
         delay_seconds is the number of seconds from now until the program
@@ -101,25 +102,25 @@ class SecomatAPI:
         device interprets the value as a relative delay, not a Unix epoch
         timestamp. The iOS app's main drying button sends 0.)
         """
-        return await self.send_command(
+        await self.send_command(
             "PRG_WASH_MANUAL_ON", {"prg_wash_starttime": delay_seconds}
         )
 
-    async def set_target_moisture(self, level: int) -> bool:
+    async def set_target_moisture(self, level: int) -> None:
         """Set target moisture level 0-3 (discovered by @ratsch via PARAMETER_CHANGE)."""
-        return await self.send_command("PARAMETER_CHANGE", {"residual_moisture_target": level})
+        await self.send_command("PARAMETER_CHANGE", {"residual_moisture_target": level})
 
-    async def set_moisture_lock(self, locked: bool) -> bool:
+    async def set_moisture_lock(self, locked: bool) -> None:
         """Lock or unlock the target moisture slider (discovered by @ratsch)."""
-        return await self.send_command("PARAMETER_CHANGE", {"lock_residual_moisture_target": int(locked)})
+        await self.send_command("PARAMETER_CHANGE", {"lock_residual_moisture_target": int(locked)})
 
-    async def start_room_drying(self) -> bool:
+    async def start_room_drying(self) -> None:
         """Start room drying."""
-        return await self.send_command("PRG_ROOM_ON")
+        await self.send_command("PRG_ROOM_ON")
 
-    async def stop_room_drying(self) -> bool:
+    async def stop_room_drying(self) -> None:
         """Stop room drying."""
-        return await self.send_command("PRG_ROOM_OFF")
+        await self.send_command("PRG_ROOM_OFF")
 
     async def validate_connection(self) -> bool:
         """Validate the API connection."""

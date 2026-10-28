@@ -1,12 +1,11 @@
 """Button platform for Krüger Secomat."""
 from __future__ import annotations
 
-import logging
-
 import voluptuous as vol
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -14,8 +13,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .api import SecomatAPIError
 from .const import DOMAIN, SERVICE_START_DRYING
 from .coordinator import SecomatCoordinator
-
-_LOGGER = logging.getLogger(__name__)
 
 # Upper bound = 24h. The device accepts larger values, but a one-day window
 # is the sane practical limit and protects against typos like 360000.
@@ -81,8 +78,4 @@ class SecomatManualButton(SecomatBaseButton):
             await self.coordinator.api.start_laundry_drying_manual(delay_seconds)
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            _LOGGER.error(
-                "Failed to start manual drying (delay_seconds=%s): %s",
-                delay_seconds,
-                err,
-            )
+            raise HomeAssistantError(f"Failed to start manual drying: {err}") from err
