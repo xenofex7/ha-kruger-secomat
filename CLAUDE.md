@@ -16,7 +16,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 1. **Config Flow** (`config_flow.py`) → Validates claim token and sets up entry
 2. **Integration Setup** (`__init__.py`) → Creates API client and coordinator
 3. **Coordinator** (`coordinator.py`) → Manages polling and data updates
-4. **Platform Entities** (`sensor.py`, `switch.py`, `select.py`) → Expose device state to HA
+4. **Platform Entities** (`sensor.py`, `binary_sensor.py`, `switch.py`, `select.py`, `button.py`) → Expose device state to HA
 
 ### Key Components
 
@@ -35,7 +35,9 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 **Platforms**:
 - **Sensors**: Temperature, Humidity, State, Operating Mode, Firmware, Target Moisture, Error Count, Next Start, Device Tick
 - **Binary Sensors**: Eye Detects Object, Display Backlight, Problem
-- **Switches**: Laundry Drying, Room Drying
+- **Switches**: Laundry Drying, Room Drying, Moisture Lock
+- **Select**: Target Moisture
+- **Button**: Start Manual Drying, plus the entity service `secomat.start_drying` (`delay_seconds`)
 
 All entity classes inherit from `SecomatEntity` (`entity.py`, a `CoordinatorEntity`), which sets the unique ID and device info.
 
@@ -48,6 +50,7 @@ Available commands sent via `api.send_command(command, args)`:
 | `OFF` | None | Turn off device |
 | `PRG_WASH_AUTO` | None | Start laundry drying (auto) |
 | `PRG_WASH_MANUAL_ON` | `{"prg_wash_starttime": <delay_seconds>}` | Start laundry drying (manual); value is seconds from now until start (0 = immediate). Verified on hardware. |
+| `PRG_WASH_MANUAL_OFF` | None | Cancel a pending delayed manual start (verified on hardware, not used by the integration yet) |
 | `PRG_WASH_TIMER` | None | Start laundry drying (timer) |
 | `PRG_ROOM_ON` | None | Enable room drying |
 | `PRG_ROOM_OFF` | None | Disable room drying |
@@ -73,9 +76,11 @@ Defined in `const.py` (reverse-engineered by live observation; gaps remain):
 ## Development Commands
 
 ### Testing the Integration
+There are no automated tests. Verify against the real device with the standalone scripts (token from `.env` or `SECOMAT_TOKEN`):
 ```bash
-# Home Assistant uses pytest for testing (not implemented in this repo yet)
-pytest tests/
+python3 test.py       # current state
+python3 test.py -i    # interactive command tester
+python3 watch.py      # print state changes live
 ```
 
 ### Local Installation
