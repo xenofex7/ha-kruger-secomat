@@ -7,11 +7,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import SecomatAPIError
 from .const import DOMAIN
 from .coordinator import SecomatCoordinator
+from .entity import SecomatEntity
 
 
 async def async_setup_entry(
@@ -24,46 +24,21 @@ async def async_setup_entry(
     serial = entry.unique_id
 
     entities = [
-        SecomatPowerSwitch(coordinator, entry, serial),
-        SecomatRoomDryingSwitch(coordinator, entry, serial),
-        SecomatMoistureLockSwitch(coordinator, entry, serial),
+        SecomatPowerSwitch(coordinator, serial),
+        SecomatRoomDryingSwitch(coordinator, serial),
+        SecomatMoistureLockSwitch(coordinator, serial),
     ]
 
     async_add_entities(entities)
 
 
-class SecomatBaseSwitch(CoordinatorEntity[SecomatCoordinator], SwitchEntity):
-    """Base class for Secomat switches."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self,
-        coordinator: SecomatCoordinator,
-        entry: ConfigEntry,
-        serial: str,
-    ) -> None:
-        """Initialize the switch."""
-        super().__init__(coordinator)
-        self._serial = serial
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, serial)},
-            "name": f"Secomat {serial}",
-            "manufacturer": "Krüger",
-            "model": "Secomat",
-        }
-
-
-class SecomatPowerSwitch(SecomatBaseSwitch):
+class SecomatPowerSwitch(SecomatEntity, SwitchEntity):
     """Secomat power switch (laundry drying)."""
 
     _attr_name = "Laundry Drying"
     _attr_icon = "mdi:washing-machine"
     _attr_device_class = SwitchDeviceClass.SWITCH
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_laundry_drying"
+    _key = "laundry_drying"
 
     @property
     def is_on(self) -> bool:
@@ -89,16 +64,13 @@ class SecomatPowerSwitch(SecomatBaseSwitch):
             raise HomeAssistantError(f"Failed to turn off Secomat: {err}") from err
 
 
-class SecomatRoomDryingSwitch(SecomatBaseSwitch):
+class SecomatRoomDryingSwitch(SecomatEntity, SwitchEntity):
     """Secomat room drying switch."""
 
     _attr_name = "Room Drying"
     _attr_icon = "mdi:home-thermometer"
     _attr_device_class = SwitchDeviceClass.SWITCH
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_room_drying"
+    _key = "room_drying"
 
     @property
     def is_on(self) -> bool:
@@ -122,7 +94,7 @@ class SecomatRoomDryingSwitch(SecomatBaseSwitch):
             raise HomeAssistantError(f"Failed to turn off room drying: {err}") from err
 
 
-class SecomatMoistureLockSwitch(SecomatBaseSwitch):
+class SecomatMoistureLockSwitch(SecomatEntity, SwitchEntity):
     """Lock/unlock target moisture slider (discovered by @ratsch).
 
     Uses PARAMETER_CHANGE with lock_residual_moisture_target arg.
@@ -131,10 +103,7 @@ class SecomatMoistureLockSwitch(SecomatBaseSwitch):
     _attr_name = "Moisture Lock"
     _attr_icon = "mdi:lock"
     _attr_entity_category = EntityCategory.CONFIG
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_moisture_lock"
+    _key = "moisture_lock"
 
     @property
     def is_on(self) -> bool:

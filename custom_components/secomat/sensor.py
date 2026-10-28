@@ -13,10 +13,10 @@ from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, HUMIDITY_LEVELS, OPERATING_MODES, SECOMAT_STATES
 from .coordinator import SecomatCoordinator
+from .entity import SecomatEntity
 
 
 async def async_setup_entry(
@@ -29,44 +29,21 @@ async def async_setup_entry(
     serial = entry.unique_id
 
     entities = [
-        SecomatTemperatureSensor(coordinator, entry, serial),
-        SecomatHumiditySensor(coordinator, entry, serial),
-        SecomatStateSensor(coordinator, entry, serial),
-        SecomatModeSensor(coordinator, entry, serial),
-        SecomatFirmwareSensor(coordinator, entry, serial),
-        SecomatTargetMoistureSensor(coordinator, entry, serial),
-        SecomatErrorCountSensor(coordinator, entry, serial),
-        SecomatNextStartSensor(coordinator, entry, serial),
-        SecomatDeviceTickSensor(coordinator, entry, serial),
+        SecomatTemperatureSensor(coordinator, serial),
+        SecomatHumiditySensor(coordinator, serial),
+        SecomatStateSensor(coordinator, serial),
+        SecomatModeSensor(coordinator, serial),
+        SecomatFirmwareSensor(coordinator, serial),
+        SecomatTargetMoistureSensor(coordinator, serial),
+        SecomatErrorCountSensor(coordinator, serial),
+        SecomatNextStartSensor(coordinator, serial),
+        SecomatDeviceTickSensor(coordinator, serial),
     ]
 
     async_add_entities(entities)
 
 
-class SecomatBaseSensor(CoordinatorEntity[SecomatCoordinator], SensorEntity):
-    """Base class for Secomat sensors."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self,
-        coordinator: SecomatCoordinator,
-        entry: ConfigEntry,
-        serial: str,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._serial = serial
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, serial)},
-            "name": f"Secomat {serial}",
-            "manufacturer": "Krüger",
-            "model": "Secomat",
-            "sw_version": coordinator.data.get("fw_version"),
-        }
-
-
-class SecomatTemperatureSensor(SecomatBaseSensor):
+class SecomatTemperatureSensor(SecomatEntity, SensorEntity):
     """Secomat temperature sensor."""
 
     _attr_name = "Temperature"
@@ -74,10 +51,7 @@ class SecomatTemperatureSensor(SecomatBaseSensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_suggested_display_precision = 1
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_temperature"
+    _key = "temperature"
 
     @property
     def native_value(self) -> float | None:
@@ -85,7 +59,7 @@ class SecomatTemperatureSensor(SecomatBaseSensor):
         return self.coordinator.data.get("ambient_temperature")
 
 
-class SecomatHumiditySensor(SecomatBaseSensor):
+class SecomatHumiditySensor(SecomatEntity, SensorEntity):
     """Secomat humidity sensor."""
 
     _attr_name = "Humidity"
@@ -93,10 +67,7 @@ class SecomatHumiditySensor(SecomatBaseSensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_suggested_display_precision = 1
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_humidity"
+    _key = "humidity"
 
     @property
     def native_value(self) -> float | None:
@@ -104,15 +75,12 @@ class SecomatHumiditySensor(SecomatBaseSensor):
         return self.coordinator.data.get("humidity")
 
 
-class SecomatStateSensor(SecomatBaseSensor):
+class SecomatStateSensor(SecomatEntity, SensorEntity):
     """Secomat state sensor."""
 
     _attr_name = "State"
     _attr_icon = "mdi:air-humidifier"
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_state"
+    _key = "state"
 
     @property
     def native_value(self) -> str | None:
@@ -123,15 +91,12 @@ class SecomatStateSensor(SecomatBaseSensor):
         return SECOMAT_STATES.get(state, f"unknown ({state})")
 
 
-class SecomatModeSensor(SecomatBaseSensor):
+class SecomatModeSensor(SecomatEntity, SensorEntity):
     """Secomat operating mode sensor."""
 
     _attr_name = "Operating Mode"
     _attr_icon = "mdi:cog"
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_operating_mode"
+    _key = "operating_mode"
 
     @property
     def native_value(self) -> str | None:
@@ -142,16 +107,13 @@ class SecomatModeSensor(SecomatBaseSensor):
         return OPERATING_MODES.get(mode, f"unknown ({mode})")
 
 
-class SecomatFirmwareSensor(SecomatBaseSensor):
+class SecomatFirmwareSensor(SecomatEntity, SensorEntity):
     """Secomat firmware sensor."""
 
     _attr_name = "Firmware"
     _attr_icon = "mdi:chip"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_firmware"
+    _key = "firmware"
 
     @property
     def native_value(self) -> str | None:
@@ -159,16 +121,13 @@ class SecomatFirmwareSensor(SecomatBaseSensor):
         return self.coordinator.data.get("fw_version")
 
 
-class SecomatTargetMoistureSensor(SecomatBaseSensor):
+class SecomatTargetMoistureSensor(SecomatEntity, SensorEntity):
     """Secomat target moisture sensor (read-only)."""
 
     _attr_name = "Target Moisture"
     _attr_icon = "mdi:water-percent"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_target_moisture"
+    _key = "target_moisture"
 
     @property
     def native_value(self) -> str | None:
@@ -186,17 +145,14 @@ class SecomatTargetMoistureSensor(SecomatBaseSensor):
         }
 
 
-class SecomatErrorCountSensor(SecomatBaseSensor):
+class SecomatErrorCountSensor(SecomatEntity, SensorEntity):
     """Number of active errors reported by the device."""
 
     _attr_name = "Error Count"
     _attr_icon = "mdi:alert-circle"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_error_count"
+    _key = "error_count"
 
     @property
     def native_value(self) -> int:
@@ -207,16 +163,13 @@ class SecomatErrorCountSensor(SecomatBaseSensor):
         return {"errors": self.coordinator.data.get("error_list") or []}
 
 
-class SecomatNextStartSensor(SecomatBaseSensor):
+class SecomatNextStartSensor(SecomatEntity, SensorEntity):
     """Next scheduled program start (None when no timer set)."""
 
     _attr_name = "Next Start"
     _attr_icon = "mdi:timer-play-outline"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_next_start"
+    _key = "next_start"
 
     @property
     def native_value(self) -> datetime | None:
@@ -231,17 +184,14 @@ class SecomatNextStartSensor(SecomatBaseSensor):
             return None
 
 
-class SecomatDeviceTickSensor(SecomatBaseSensor):
+class SecomatDeviceTickSensor(SecomatEntity, SensorEntity):
     """Raw device clock/tick reported in the `now` field."""
 
     _attr_name = "Device Tick"
     _attr_icon = "mdi:clock-outline"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_entity_registry_enabled_default = False
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_device_tick"
+    _key = "device_tick"
 
     @property
     def native_value(self) -> int | None:

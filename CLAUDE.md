@@ -37,7 +37,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 - **Binary Sensors**: Eye Detects Object, Display Backlight, Problem
 - **Switches**: Laundry Drying, Room Drying
 
-All entity classes inherit from `CoordinatorEntity` for automatic updates.
+All entity classes inherit from `SecomatEntity` (`entity.py`, a `CoordinatorEntity`), which sets the unique ID and device info.
 
 ## API Commands
 
@@ -105,8 +105,8 @@ cp -r custom_components/secomat /path/to/homeassistant/config/custom_components/
 3. Use in platform entity (sensor/switch/select)
 
 ### Adding New Entities
-1. Create sensor/switch/select class inheriting from `SecomatBaseSensor`/`SecomatBaseSwitch`/etc
-2. Set `_attr_unique_id` as `f"{serial}_{entity_type}"`
+1. Create a class inheriting from `SecomatEntity` and the HA platform entity (e.g. `SensorEntity`)
+2. Set `_key`; the unique ID becomes `f"{serial}_{_key}"`
 3. Implement required properties (`native_value`, `is_on`, etc.)
 4. Add to entity list in platform's `async_setup_entry()`
 
@@ -152,4 +152,4 @@ POST command returns:
 - **Token security**: Claim token is stored in HA config entry (encrypted at rest)
 - **Entity naming**: Uses `has_entity_name = True` pattern (HA 2022.9+)
 - **Unique ID format**: `{serial_number}_{entity_type}` prevents duplicate entities
-- **Device info**: Shared across all entities via identical `device_info` dict
+- **Device info**: Defined once in `SecomatEntity`

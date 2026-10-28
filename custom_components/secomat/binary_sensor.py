@@ -9,10 +9,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import SecomatCoordinator
+from .entity import SecomatEntity
 
 
 async def async_setup_entry(
@@ -26,46 +26,20 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            SecomatEyeBinarySensor(coordinator, entry, serial),
-            SecomatBacklightBinarySensor(coordinator, entry, serial),
-            SecomatProblemBinarySensor(coordinator, entry, serial),
+            SecomatEyeBinarySensor(coordinator, serial),
+            SecomatBacklightBinarySensor(coordinator, serial),
+            SecomatProblemBinarySensor(coordinator, serial),
         ]
     )
 
 
-class SecomatBaseBinarySensor(CoordinatorEntity[SecomatCoordinator], BinarySensorEntity):
-    """Base class for Secomat binary sensors."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self,
-        coordinator: SecomatCoordinator,
-        entry: ConfigEntry,
-        serial: str,
-    ) -> None:
-        """Initialize the binary sensor."""
-        super().__init__(coordinator)
-        self._serial = serial
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, serial)},
-            "name": f"Secomat {serial}",
-            "manufacturer": "Krüger",
-            "model": "Secomat",
-            "sw_version": coordinator.data.get("fw_version"),
-        }
-
-
-class SecomatEyeBinarySensor(SecomatBaseBinarySensor):
+class SecomatEyeBinarySensor(SecomatEntity, BinarySensorEntity):
     """Detects whether the device's eye sensor sees an object."""
 
     _attr_name = "Eye Detects Object"
     _attr_device_class = BinarySensorDeviceClass.OCCUPANCY
     _attr_icon = "mdi:eye"
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_eye_seeing_object"
+    _key = "eye_seeing_object"
 
     @property
     def is_on(self) -> bool | None:
@@ -73,16 +47,13 @@ class SecomatEyeBinarySensor(SecomatBaseBinarySensor):
         return bool(val) if val is not None else None
 
 
-class SecomatBacklightBinarySensor(SecomatBaseBinarySensor):
+class SecomatBacklightBinarySensor(SecomatEntity, BinarySensorEntity):
     """Reports whether the HMI backlight is on."""
 
     _attr_name = "Display Backlight"
     _attr_icon = "mdi:monitor-shimmer"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_hmi_backlight"
+    _key = "hmi_backlight"
 
     @property
     def is_on(self) -> bool | None:
@@ -90,16 +61,13 @@ class SecomatBacklightBinarySensor(SecomatBaseBinarySensor):
         return bool(val) if val is not None else None
 
 
-class SecomatProblemBinarySensor(SecomatBaseBinarySensor):
+class SecomatProblemBinarySensor(SecomatEntity, BinarySensorEntity):
     """On when the device reports one or more errors."""
 
     _attr_name = "Problem"
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    def __init__(self, coordinator, entry, serial):
-        super().__init__(coordinator, entry, serial)
-        self._attr_unique_id = f"{serial}_problem"
+    _key = "problem"
 
     @property
     def is_on(self) -> bool:

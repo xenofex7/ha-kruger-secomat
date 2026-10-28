@@ -10,11 +10,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import SecomatAPIError
 from .const import DOMAIN, HUMIDITY_LEVELS
 from .coordinator import SecomatCoordinator
+from .entity import SecomatEntity
 
 MOISTURE_LEVEL_MAP = {v: k for k, v in HUMIDITY_LEVELS.items()}
 
@@ -27,28 +27,16 @@ async def async_setup_entry(
     """Set up Secomat select entities."""
     coordinator: SecomatCoordinator = hass.data[DOMAIN][entry.entry_id]
     serial = entry.unique_id
-    async_add_entities([SecomatTargetMoistureSelect(coordinator, entry, serial)])
+    async_add_entities([SecomatTargetMoistureSelect(coordinator, serial)])
 
 
-class SecomatTargetMoistureSelect(CoordinatorEntity[SecomatCoordinator], SelectEntity):
+class SecomatTargetMoistureSelect(SecomatEntity, SelectEntity):
     """Select entity for target moisture level."""
 
-    _attr_has_entity_name = True
     _attr_name = "Target Moisture"
     _attr_icon = "mdi:water-percent"
     _attr_options = list(HUMIDITY_LEVELS.values())
-
-    def __init__(self, coordinator: SecomatCoordinator, entry: ConfigEntry, serial: str) -> None:
-        super().__init__(coordinator)
-        self._serial = serial
-        self._attr_unique_id = f"{serial}_target_moisture"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, serial)},
-            "name": f"Secomat {serial}",
-            "manufacturer": "Krüger",
-            "model": "Secomat",
-            "sw_version": coordinator.data.get("fw_version"),
-        }
+    _key = "target_moisture"
 
     @property
     def current_option(self) -> str | None:
