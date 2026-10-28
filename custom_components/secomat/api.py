@@ -58,7 +58,7 @@ class SecomatAPI:
                 if response.status != 200:
                     raise SecomatAPIError(f"API returned {response.status}")
                 data = await response.json()
-                if not isinstance(data, dict) or data.get("type") != "STATE" or "payload" not in data:
+                if not isinstance(data, dict) or data.get("type") != "STATE" or not isinstance(data.get("payload"), dict):
                     raise SecomatAPIError(f"Unexpected response: {data}")
                 return data["payload"]
         except aiohttp.ClientError as err:
