@@ -72,7 +72,7 @@ class SecomatPowerSwitch(SecomatBaseSwitch):
         """Return true if laundry drying is active."""
         state = self.coordinator.data.get("secomat_state", 0)
         mode = self.coordinator.data.get("operating_mode", 0)
-        return state > 0 and mode in (1, 2)
+        return state > 0 and mode == 2
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on laundry drying."""
