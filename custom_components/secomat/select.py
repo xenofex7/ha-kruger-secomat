@@ -16,7 +16,6 @@ from .api import SecomatAPIError
 from .const import DOMAIN, HUMIDITY_LEVELS
 from .coordinator import SecomatCoordinator
 
-MOISTURE_OPTIONS = ["very_dry", "dry", "medium", "moist"]
 MOISTURE_LEVEL_MAP = {v: k for k, v in HUMIDITY_LEVELS.items()}
 
 
@@ -37,7 +36,7 @@ class SecomatTargetMoistureSelect(CoordinatorEntity[SecomatCoordinator], SelectE
     _attr_has_entity_name = True
     _attr_name = "Target Moisture"
     _attr_icon = "mdi:water-percent"
-    _attr_options = MOISTURE_OPTIONS
+    _attr_options = list(HUMIDITY_LEVELS.values())
 
     def __init__(self, coordinator: SecomatCoordinator, entry: ConfigEntry, serial: str) -> None:
         super().__init__(coordinator)
@@ -66,11 +65,8 @@ class SecomatTargetMoistureSelect(CoordinatorEntity[SecomatCoordinator], SelectE
         return not self.coordinator.data.get("target_humidity_level_locked", 0)
 
     async def async_select_option(self, option: str) -> None:
-        level = MOISTURE_LEVEL_MAP.get(option)
-        if level is None:
-            return
         try:
-            await self.coordinator.api.set_target_moisture(level)
+            await self.coordinator.api.set_target_moisture(MOISTURE_LEVEL_MAP[option])
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
             raise HomeAssistantError(f"Failed to set target moisture: {err}") from err

@@ -5,6 +5,7 @@ from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -129,6 +130,7 @@ class SecomatMoistureLockSwitch(SecomatBaseSwitch):
 
     _attr_name = "Moisture Lock"
     _attr_icon = "mdi:lock"
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator, entry, serial):
         super().__init__(coordinator, entry, serial)
