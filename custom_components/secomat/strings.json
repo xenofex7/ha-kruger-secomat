@@ -21,11 +21,11 @@
   "services": {
     "start_drying": {
       "name": "Start Drying",
-      "description": "Start manual laundry drying, optionally delayed.",
+      "description": "Start manual laundry drying. Optionally delay the start by a number of seconds (0 = start immediately).",
       "fields": {
         "delay_seconds": {
           "name": "Delay",
-          "description": "Seconds from now until the drying program starts. 0 means start immediately."
+          "description": "Seconds from now until the drying program starts. 0 means start immediately. Maximum 86400 (24 hours)."
         }
       }
     }
