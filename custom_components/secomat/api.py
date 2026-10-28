@@ -56,11 +56,13 @@ class SecomatAPI:
                 if response.status != 200:
                     raise SecomatAPIError(f"API returned {response.status}")
                 data = await response.json()
-                if data.get("type") == "STATE":
-                    return data.get("payload", {})
-                return data
+                if not isinstance(data, dict) or data.get("type") != "STATE" or "payload" not in data:
+                    raise SecomatAPIError(f"Unexpected response: {data}")
+                return data["payload"]
         except aiohttp.ClientError as err:
             raise SecomatAPIError(f"Connection error: {err}") from err
+        except ValueError as err:
+            raise SecomatAPIError(f"Invalid response: {err}") from err
         except asyncio.TimeoutError as err:
             raise SecomatAPIError("Request timeout") from err
 
@@ -83,6 +85,8 @@ class SecomatAPI:
                     raise SecomatAPIError(f"Command {command} rejected: {data}")
         except aiohttp.ClientError as err:
             raise SecomatAPIError(f"Connection error: {err}") from err
+        except ValueError as err:
+            raise SecomatAPIError(f"Invalid response: {err}") from err
         except asyncio.TimeoutError as err:
             raise SecomatAPIError("Request timeout") from err
 
