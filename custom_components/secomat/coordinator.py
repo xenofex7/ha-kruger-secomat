@@ -32,4 +32,4 @@ class SecomatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             return await self.api.get_state()
         except SecomatAPIError as err:
-            raise UpdateFailed(f"Error fetching Secomat data: {err}") from err
+            raise UpdateFailed(str(err)) from err
