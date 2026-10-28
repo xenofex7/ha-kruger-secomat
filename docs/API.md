@@ -63,7 +63,7 @@ The device itself has no open ports - all communication runs through the Krüger
 |-------|---------|-------------|
 | `ambient_temperature` | `20.87` | Temperature in °C |
 | `humidity` | `50.50` | Relative humidity in % |
-| `secomat_state` | `0` = ready, `2` = starting, `6` = drying, `15` = drying_high | Runtime phase (gaps remain - other values appear during transitions) |
+| `secomat_state` | `0` = ready, `2` = starting, `5` = starting (~2 s before drying), `6` = drying, `15` = drying_high | Runtime phase (gaps remain - other values may appear during transitions) |
 | `operating_mode` | `0` = standby, `1` = no_program, `2` = laundry_program | Program state |
 | `room_drying_enabled` | `0` / `1` | Room drying active |
 | `target_humidity_level` | `0` = very_dry, `1` = dry, `2` = medium, `3` = moist | Target moisture level |

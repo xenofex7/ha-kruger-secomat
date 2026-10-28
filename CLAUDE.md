@@ -62,7 +62,7 @@ Commands that exist in the app but are not yet reverse-engineered:
 Defined in `const.py` (reverse-engineered by live observation; gaps remain):
 
 **Secomat States** (`secomat_state`):
-- 0=ready, 2=starting, 6=drying, 15=drying_high
+- 0=ready, 2=starting, 5=starting (brief transition), 6=drying, 15=drying_high
 
 **Operating Modes** (`operating_mode`):
 - 0=standby, 1=no_program, 2=laundry_program

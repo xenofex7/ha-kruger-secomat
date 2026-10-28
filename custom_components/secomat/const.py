@@ -14,6 +14,7 @@ DEFAULT_SCAN_INTERVAL = 30
 SECOMAT_STATES = {
     0: "ready",
     2: "starting",
+    5: "starting",
     6: "drying",
     15: "drying_high",
 }

@@ -118,6 +118,8 @@ class SecomatStateSensor(SecomatBaseSensor):
     def native_value(self) -> str | None:
         """Return the device state."""
         state = self.coordinator.data.get("secomat_state")
+        if state is None:
+            return None
         return SECOMAT_STATES.get(state, f"unknown ({state})")
 
 
@@ -135,6 +137,8 @@ class SecomatModeSensor(SecomatBaseSensor):
     def native_value(self) -> str | None:
         """Return the operating mode."""
         mode = self.coordinator.data.get("operating_mode")
+        if mode is None:
+            return None
         return OPERATING_MODES.get(mode, f"unknown ({mode})")
 
 
