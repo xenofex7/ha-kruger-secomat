@@ -69,6 +69,7 @@ Defined in `const.py` (reverse-engineered by live observation; gaps remain):
 
 **Operating Modes** (`operating_mode`):
 - 0=standby, 1=no_program, 2=laundry_program
+- Observed live: 1 means the device is on without a laundry program (e.g. only room drying active, app shows "Ready"); drying with the laundry program always runs in mode 2. That is why the Laundry Drying switch only checks mode 2.
 
 **Humidity Levels** (`target_humidity_level`):
 - 0=very_dry, 1=dry, 2=medium, 3=moist
@@ -115,6 +116,9 @@ cp -r custom_components/secomat /path/to/homeassistant/config/custom_components/
 3. Implement required properties (`native_value`, `is_on`, etc.)
 4. Add to entity list in platform's `async_setup_entry()`
 
+### Error Handling in Actions
+- Entity actions (`async_turn_on`, `async_select_option`, `async_press`, services) catch `SecomatAPIError` and raise `HomeAssistantError`, so the UI and automations see the failure. Never only log it.
+
 ### Session Management
 - `SecomatAPI` requires a session; always pass `async_get_clientsession(hass)`
 - The shared session is owned by Home Assistant, so never close it
@@ -150,6 +154,10 @@ POST command returns:
   "status": "OK"
 }
 ```
+
+Error responses (observed):
+- Invalid claim token: HTTP 401 with JSON `{"error":401}`
+- Empty claim token: HTTP 403 with an nginx HTML page
 
 ## Important Notes
 
