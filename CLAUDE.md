@@ -166,3 +166,12 @@ Error responses (observed):
 - **Entity naming**: Uses `has_entity_name = True` pattern (HA 2022.9+)
 - **Unique ID format**: `{serial_number}_{entity_type}` prevents duplicate entities
 - **Device info**: Defined once in `SecomatEntity`
+
+## Releases & HACS
+
+- **Release**: bump `version` in `manifest.json`, tag `vX.Y.Z`, create a GitHub Release with notes. HACS reads releases, a bare tag is not enough. Call out breaking changes in the notes.
+- **Validation**: `.github/workflows/validate.yml` runs the HACS action and hassfest on every push and daily; keep it green.
+- **HACS default submission**: [hacs/default#12854](https://github.com/hacs/default/pull/12854), opened 28.10.2026 from the fork branch `xenofex7/default:add-ha-kruger-secomat`. All checks green, waiting in the review queue (takes months). Do not comment, request reviews, open a new PR or merge the default branch into it.
+- **After the PR is merged**: update the README (badge `HACS-custom` and the "add as custom repository" install step).
+- **Keep the listing**: never rename, transfer, archive or delete the repo, and never delete releases (users can pin older versions).
+- **Manifest `categories`**: rejected by hassfest on stable HA 2026.10 (dev only). Re-add `["climate.air_purifiers_humidifiers", "appliances_cleaning.laundry"]` once a stable release accepts it; until then the HACS action warns about missing categories.
