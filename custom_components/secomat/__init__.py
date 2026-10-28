@@ -6,6 +6,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import SecomatAPI
 from .const import CONF_CLAIM_TOKEN, DOMAIN
@@ -18,7 +19,7 @@ PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.S
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Secomat from a config entry."""
-    api = SecomatAPI(entry.data[CONF_CLAIM_TOKEN])
+    api = SecomatAPI(entry.data[CONF_CLAIM_TOKEN], async_get_clientsession(hass))
     coordinator = SecomatCoordinator(hass, api)
 
     await coordinator.async_config_entry_first_refresh()
@@ -34,6 +35,5 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        coordinator: SecomatCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
-        await coordinator.api.close()
+        hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok

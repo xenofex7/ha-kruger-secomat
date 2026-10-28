@@ -22,7 +22,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 
 **API Client** (`api.py`):
 - `SecomatAPI` class handles all HTTP communication with Krüger Cloud
-- Manages aiohttp session lifecycle (creates own session if not provided)
+- Uses Home Assistant's shared aiohttp session (`async_get_clientsession`), passed in by the caller
 - All methods are async and use 10-second timeouts
 - Custom exception: `SecomatAPIError` for all API failures
 
@@ -111,9 +111,8 @@ cp -r custom_components/secomat /path/to/homeassistant/config/custom_components/
 4. Add to entity list in platform's `async_setup_entry()`
 
 ### Session Management
-- API client manages its own aiohttp session if none provided
-- **Important**: Always call `api.close()` in cleanup paths (`config_flow.py`, `__init__.py`)
-- Coordinator automatically closes API session via `async_unload_entry()`
+- `SecomatAPI` requires a session; always pass `async_get_clientsession(hass)`
+- The shared session is owned by Home Assistant, so never close it
 
 ## API Response Format
 

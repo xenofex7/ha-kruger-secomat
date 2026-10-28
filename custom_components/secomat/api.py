@@ -19,18 +19,10 @@ class SecomatAPIError(Exception):
 class SecomatAPI:
     """Krüger Secomat API client."""
 
-    def __init__(self, claim_token: str, session: aiohttp.ClientSession | None = None) -> None:
+    def __init__(self, claim_token: str, session: aiohttp.ClientSession) -> None:
         """Initialize the API client."""
         self._claim_token = claim_token
         self._session = session
-        self._own_session = session is None
-
-    async def _ensure_session(self) -> aiohttp.ClientSession:
-        """Ensure we have an aiohttp session."""
-        if self._session is None or self._session.closed:
-            self._session = aiohttp.ClientSession()
-            self._own_session = True
-        return self._session
 
     @property
     def _headers(self) -> dict[str, str]:
@@ -45,9 +37,8 @@ class SecomatAPI:
 
     async def get_state(self) -> dict[str, Any]:
         """Get current Secomat state."""
-        session = await self._ensure_session()
         try:
-            async with session.get(
+            async with self._session.get(
                 API_BASE_URL,
                 headers=self._headers,
                 ssl=True,
@@ -68,10 +59,9 @@ class SecomatAPI:
 
     async def send_command(self, command: str, args: dict | None = None) -> None:
         """Send a command to the Secomat."""
-        session = await self._ensure_session()
         payload = {"command": command, "args": args or {}}
         try:
-            async with session.post(
+            async with self._session.post(
                 API_BASE_URL,
                 headers=self._headers,
                 json=payload,
@@ -133,8 +123,3 @@ class SecomatAPI:
             return "serial_number" in state
         except SecomatAPIError:
             return False
-
-    async def close(self) -> None:
-        """Close the session."""
-        if self._own_session and self._session and not self._session.closed:
-            await self._session.close()

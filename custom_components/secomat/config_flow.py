@@ -8,6 +8,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import SecomatAPI
 from .const import CONF_CLAIM_TOKEN, DOMAIN
@@ -28,14 +29,13 @@ class SecomatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             claim_token = user_input[CONF_CLAIM_TOKEN]
-            api = SecomatAPI(claim_token)
+            api = SecomatAPI(claim_token, async_get_clientsession(self.hass))
 
             try:
                 valid = await api.validate_connection()
                 if valid:
                     state = await api.get_state()
                     serial = state.get("serial_number", "unknown")
-                    await api.close()
 
                     await self.async_set_unique_id(serial)
                     self._abort_if_unique_id_configured()
@@ -51,8 +51,6 @@ class SecomatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except Exception:
                 _LOGGER.exception("Unexpected error during config flow")
                 errors["base"] = "unknown"
-            finally:
-                await api.close()
 
         return self.async_show_form(
             step_id="user",
