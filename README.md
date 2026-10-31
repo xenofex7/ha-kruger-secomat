@@ -97,6 +97,20 @@ The Secomat device has no open ports, so the integration talks to the Krüger Cl
 
 Treat the token like a password: it grants full control over your device. Home Assistant stores it unencrypted in its config storage (`.storage/core.config_entries`), so keep backups of your configuration private.
 
+## Usage
+
+The `secomat.start_drying` service starts manual laundry drying, optionally with a delay. It targets the "Start Manual Drying" button entity; replace the entity ID in the example with the one Home Assistant shows for that button:
+
+```yaml
+action: secomat.start_drying
+target:
+  entity_id: button.secomat_43_16554_start_manual_drying
+data:
+  delay_seconds: 3600
+```
+
+`delay_seconds` accepts 0 to 86400 (24 hours). Omit it or use 0 to start immediately. A pending start shows up in the Next Start sensor.
+
 ## How it works
 
 ```mermaid
