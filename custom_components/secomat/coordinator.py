@@ -1,4 +1,3 @@
-"""Data update coordinator for Krüger Secomat."""
 from __future__ import annotations
 
 import logging
@@ -15,10 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SecomatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Secomat data update coordinator."""
-
     def __init__(self, hass: HomeAssistant, api: SecomatAPI) -> None:
-        """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
@@ -28,7 +24,6 @@ class SecomatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.api = api
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch data from the Secomat API."""
         try:
             return await self.api.get_state()
         except SecomatAPIError as err:

@@ -21,28 +21,20 @@ from typing import Any
 import aiohttp
 
 
-# ============================================================================
-# Standalone API Client (no Home Assistant dependencies)
-# ============================================================================
-
 API_BASE_URL = "https://seco.krueger.ch:8080/app1/v1/plc"
 
 
 class SecomatAPIError(Exception):
-    """Secomat API error."""
+    pass
 
 
 class SecomatAPI:
-    """Krüger Secomat API client (standalone version)."""
-
     def __init__(self, claim_token: str, session: aiohttp.ClientSession | None = None) -> None:
-        """Initialize the API client."""
         self._claim_token = claim_token
         self._session = session
         self._own_session = session is None
 
     async def _ensure_session(self) -> aiohttp.ClientSession:
-        """Ensure we have an aiohttp session."""
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession()
             self._own_session = True
@@ -50,7 +42,6 @@ class SecomatAPI:
 
     @property
     def _headers(self) -> dict[str, str]:
-        """Return API headers."""
         return {
             "claim-token": self._claim_token,
             "api": "1",
@@ -60,7 +51,6 @@ class SecomatAPI:
         }
 
     async def get_state(self) -> dict[str, Any]:
-        """Get current Secomat state."""
         session = await self._ensure_session()
         try:
             async with session.get(
@@ -81,7 +71,6 @@ class SecomatAPI:
             raise SecomatAPIError("Request timeout") from err
 
     async def send_command(self, command: str, args: dict | None = None) -> bool:
-        """Send a command to the Secomat."""
         session = await self._ensure_session()
         payload = {"command": command, "args": args or {}}
         try:
@@ -102,17 +91,11 @@ class SecomatAPI:
             raise SecomatAPIError("Request timeout") from err
 
     async def close(self) -> None:
-        """Close the session."""
         if self._own_session and self._session and not self._session.closed:
             await self._session.close()
 
 
-# ============================================================================
-# Basic Tests
-# ============================================================================
-
 async def test_get_state(api):
-    """Test getting current device state."""
     print("\n=== Testing GET State ===")
     try:
         state = await api.get_state()
@@ -125,36 +108,17 @@ async def test_get_state(api):
         return None
 
 
-async def test_command(api, command, args=None):
-    """Test sending a command to the device."""
-    args_str = f" with args {args}" if args else ""
-    print(f"\n=== Testing Command: {command}{args_str} ===")
-    try:
-        result = await api.send_command(command, args)
-        if result:
-            print(f"✅ Success! Command '{command}' executed")
-        else:
-            print(f"⚠️  Command sent but status was not 'OK'")
-        return True
-    except SecomatAPIError as err:
-        print(f"❌ Error: {err}")
-        return False
-
-
 async def run_basic_tests(claim_token):
-    """Run basic API tests."""
     print(f"🔧 Testing Secomat API with token: {claim_token[:10]}...")
 
     api = SecomatAPI(claim_token)
 
     try:
-        # Get current state
         state = await test_get_state(api)
         if not state:
             print("\n❌ Cannot proceed without valid state")
             return
 
-        # Show important values
         print("\n📊 Key Values:")
         print(f"  Temperature: {state.get('ambient_temperature')}°C")
         print(f"  Humidity: {state.get('humidity')}%")
@@ -162,34 +126,19 @@ async def run_basic_tests(claim_token):
         print(f"  Operating Mode: {state.get('operating_mode')}")
         print(f"  Target Humidity Level: {state.get('target_humidity_level')}")
 
-        # Test safe commands (uncomment to test device state changes)
-        print("\n⚠️  Device state change commands are commented out")
-        print("Uncomment lines in test.py to test:")
-        print("  - OFF")
-        print("  - PRG_WASH_AUTO")
-        print("Use 'python3 test.py -i' for other commands")
-
-        # await test_command(api, "OFF")
-        # await asyncio.sleep(2)
-        # await test_command(api, "PRG_WASH_AUTO")
+        print("\nUse 'python3 test.py -i' to send commands")
 
     finally:
         await api.close()
         print("\n✅ Tests completed, API client closed")
 
 
-# ============================================================================
-# Interactive Mode
-# ============================================================================
-
 async def run_interactive(claim_token):
-    """Interactive command testing mode."""
     print(f"🔧 Interactive Mode - Token: {claim_token[:10]}...")
 
     api = SecomatAPI(claim_token)
 
     try:
-        # Get current state
         state = await api.get_state()
         print("\n📊 Current state:")
         print(f"  target_humidity_level: {state.get('target_humidity_level')}")
@@ -217,7 +166,6 @@ async def run_interactive(claim_token):
             if not user_input:
                 continue
 
-            # Parse input
             parts = user_input.split()
             command = parts[0]
             args = {}
@@ -225,13 +173,11 @@ async def run_interactive(claim_token):
             for part in parts[1:]:
                 if '=' in part:
                     key, value = part.split('=', 1)
-                    # Try to convert to int
                     try:
                         args[key] = int(value)
                     except ValueError:
                         args[key] = value
 
-            # Send command
             print(f"Sending: {command} with {args if args else 'no args'}")
             try:
                 result = await api.send_command(command, args if args else None)
@@ -240,7 +186,6 @@ async def run_interactive(claim_token):
                 else:
                     print("⚠️  Command sent but response was not OK")
 
-                # Show new state
                 await asyncio.sleep(1)
                 new_state = await api.get_state()
                 print(f"New state: secomat_state={new_state.get('secomat_state')}, "
@@ -254,18 +199,12 @@ async def run_interactive(claim_token):
         print("\n✅ Interactive mode closed")
 
 
-# ============================================================================
-# PR #1 New Commands - guided test sequence
-# ============================================================================
-
 async def _confirm(prompt: str) -> bool:
-    """Ask the user before running a destructive command."""
     answer = input(f"\n▶ {prompt} [y/N] ").strip().lower()
     return answer in ("y", "yes", "j", "ja")
 
 
 async def _show_state(api: "SecomatAPI", label: str) -> dict:
-    """Fetch state and print the fields relevant to PR #1 tests."""
     state = await api.get_state()
     print(f"  {label}: "
           f"secomat_state={state.get('secomat_state')}, "
@@ -277,7 +216,6 @@ async def _show_state(api: "SecomatAPI", label: str) -> dict:
 
 
 async def run_new_commands(claim_token: str) -> None:
-    """Interactively verify the commands introduced in PR #1."""
     print(f"🧪 PR #1 command verification - token: {claim_token[:10]}...")
     print("Each step prompts before sending. Skip with 'n', run with 'y'.\n")
 
@@ -285,7 +223,6 @@ async def run_new_commands(claim_token: str) -> None:
     try:
         await _show_state(api, "Initial state")
 
-        # 1. PRG_WASH_MANUAL_ON (immediate start)
         if await _confirm("Send PRG_WASH_MANUAL_ON {prg_wash_starttime: 0}? (will start drying)"):
             await api.send_command("PRG_WASH_MANUAL_ON", {"prg_wash_starttime": 0})
             await asyncio.sleep(3)
@@ -293,13 +230,11 @@ async def run_new_commands(claim_token: str) -> None:
             expected = state.get("secomat_state") == 15 and state.get("operating_mode") == 2
             print(f"  {'✅' if expected else '⚠️ '} expected secomat_state=15, operating_mode=2")
 
-        # 2. OFF to bring device back
         if await _confirm("Send OFF to stop?"):
             await api.send_command("OFF")
             await asyncio.sleep(3)
             await _show_state(api, "After OFF")
 
-        # 3. PRG_WASH_MANUAL_OFF cancellation (only meaningful with a pending start)
         if await _confirm("Test PRG_WASH_MANUAL_OFF? (schedules a +60s delayed start, then cancels)"):
             await api.send_command("PRG_WASH_MANUAL_ON", {"prg_wash_starttime": 60})
             await asyncio.sleep(3)
@@ -310,7 +245,6 @@ async def run_new_commands(claim_token: str) -> None:
             state = await _show_state(api, "After PRG_WASH_MANUAL_OFF")
             print(f"  ℹ️  next_start should drop back to 0 (got {state.get('next_start')})")
 
-        # 4. PARAMETER_CHANGE residual_moisture_target
         if await _confirm("Cycle target_humidity_level via PARAMETER_CHANGE (0→3)?"):
             for level in (0, 1, 2, 3):
                 await api.send_command("PARAMETER_CHANGE", {"residual_moisture_target": level})
@@ -319,7 +253,6 @@ async def run_new_commands(claim_token: str) -> None:
                 got = state.get("target_humidity_level")
                 print(f"  {'✅' if got == level else '⚠️ '} expected target_humidity_level={level}, got {got}")
 
-        # 5. PARAMETER_CHANGE lock_residual_moisture_target
         if await _confirm("Toggle target_humidity_level_locked?"):
             for lock in (1, 0):
                 await api.send_command("PARAMETER_CHANGE", {"lock_residual_moisture_target": lock})
@@ -333,12 +266,7 @@ async def run_new_commands(claim_token: str) -> None:
         print("\n✅ Verification run complete")
 
 
-# ============================================================================
-# Token loading
-# ============================================================================
-
 def _load_dotenv(path: Path) -> None:
-    """Minimal .env loader - KEY=VALUE per line, no quoting magic."""
     if not path.is_file():
         return
     for raw in path.read_text().splitlines():
@@ -352,7 +280,6 @@ def _load_dotenv(path: Path) -> None:
 
 
 def _resolve_token(argv: list[str]) -> tuple[str | None, list[str]]:
-    """Return (token, remaining_args). Token from argv[1] if non-flag, else env."""
     _load_dotenv(Path(__file__).parent / ".env")
     rest = argv[1:]
     if rest and not rest[0].startswith("-"):
@@ -360,12 +287,7 @@ def _resolve_token(argv: list[str]) -> tuple[str | None, list[str]]:
     return os.environ.get("SECOMAT_TOKEN"), rest
 
 
-# ============================================================================
-# Main Entry Point
-# ============================================================================
-
 def print_usage():
-    """Print usage information."""
     print(__doc__)
     print("\nAvailable modes:")
     print("  (default)        Run basic API tests")
@@ -378,7 +300,6 @@ def print_usage():
 
 
 async def main():
-    """Main test function."""
     if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
         print_usage()
         sys.exit(0)

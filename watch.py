@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Live-watcher for Secomat state. Polls every 2s, prints on change."""
 import asyncio
 import os
 import sys

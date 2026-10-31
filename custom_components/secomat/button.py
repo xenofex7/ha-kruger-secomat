@@ -1,4 +1,3 @@
-"""Button platform for Krüger Secomat."""
 from __future__ import annotations
 
 import voluptuous as vol
@@ -14,8 +13,6 @@ from .const import DOMAIN, SERVICE_START_DRYING
 from .coordinator import SecomatCoordinator
 from .entity import SecomatEntity
 
-# Upper bound = 24h. The device accepts larger values, but a one-day window
-# is the sane practical limit and protects against typos like 360000.
 _MAX_DELAY_SECONDS = 24 * 60 * 60
 
 
@@ -24,7 +21,6 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Secomat buttons."""
     coordinator: SecomatCoordinator = hass.data[DOMAIN][entry.entry_id]
     serial = entry.unique_id
 
@@ -43,8 +39,6 @@ async def async_setup_entry(
 
 
 class SecomatManualButton(SecomatEntity, ButtonEntity):
-    """Start laundry drying immediately (manual mode)."""
-
     _attr_name = "Start Manual Drying"
     _attr_icon = "mdi:washing-machine-alert"
     _key = "start_manual"
@@ -53,7 +47,6 @@ class SecomatManualButton(SecomatEntity, ButtonEntity):
         await self.async_start_drying(delay_seconds=0)
 
     async def async_start_drying(self, delay_seconds: int = 0) -> None:
-        """Start manual drying, optionally after delay_seconds."""
         try:
             await self.coordinator.api.start_laundry_drying_manual(delay_seconds)
             await self.coordinator.async_request_refresh()

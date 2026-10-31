@@ -1,4 +1,3 @@
-"""Config flow for Krüger Secomat."""
 from __future__ import annotations
 
 import logging
@@ -17,14 +16,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SecomatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Secomat."""
-
     VERSION = 1
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the initial step."""
         errors: dict[str, str] = {}
 
         if user_input is not None:

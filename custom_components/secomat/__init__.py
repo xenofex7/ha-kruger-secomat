@@ -1,4 +1,3 @@
-"""Krüger Secomat integration for Home Assistant."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -14,7 +13,6 @@ PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.S
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Secomat from a config entry."""
     api = SecomatAPI(entry.data[CONF_CLAIM_TOKEN], async_get_clientsession(hass))
     coordinator = SecomatCoordinator(hass, api)
 
@@ -29,7 +27,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok

@@ -1,8 +1,3 @@
-"""Select platform for Krüger Secomat.
-
-Target moisture select entity discovered by @ratsch (https://github.com/ratsch/ha-kruger-secomat).
-Command: PARAMETER_CHANGE with args {"residual_moisture_target": 0-3}
-"""
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity
@@ -24,15 +19,12 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Secomat select entities."""
     coordinator: SecomatCoordinator = hass.data[DOMAIN][entry.entry_id]
     serial = entry.unique_id
     async_add_entities([SecomatTargetMoistureSelect(coordinator, serial)])
 
 
 class SecomatTargetMoistureSelect(SecomatEntity, SelectEntity):
-    """Select entity for target moisture level."""
-
     _attr_name = "Target Moisture"
     _attr_icon = "mdi:water-percent"
     _attr_options = list(HUMIDITY_LEVELS.values())
