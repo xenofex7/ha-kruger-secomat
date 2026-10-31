@@ -109,7 +109,7 @@ async def test_get_state(api):
 
 
 async def run_basic_tests(claim_token):
-    print(f"🔧 Testing Secomat API with token: {claim_token[:10]}...")
+    print("🔧 Testing Secomat API")
 
     api = SecomatAPI(claim_token)
 
@@ -134,7 +134,7 @@ async def run_basic_tests(claim_token):
 
 
 async def run_interactive(claim_token):
-    print(f"🔧 Interactive Mode - Token: {claim_token[:10]}...")
+    print("🔧 Interactive Mode")
 
     api = SecomatAPI(claim_token)
 
@@ -216,7 +216,7 @@ async def _show_state(api: "SecomatAPI", label: str) -> dict:
 
 
 async def run_new_commands(claim_token: str) -> None:
-    print(f"🧪 PR #1 command verification - token: {claim_token[:10]}...")
+    print("🧪 PR #1 command verification")
     print("Each step prompts before sending. Skip with 'n', run with 'y'.\n")
 
     api = SecomatAPI(claim_token)
