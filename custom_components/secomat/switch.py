@@ -22,7 +22,7 @@ async def async_setup_entry(
     serial = entry.unique_id
 
     entities = [
-        SecomatPowerSwitch(coordinator, serial),
+        SecomatLaundryDryingSwitch(coordinator, serial),
         SecomatRoomDryingSwitch(coordinator, serial),
         SecomatMoistureLockSwitch(coordinator, serial),
     ]
@@ -30,7 +30,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class SecomatPowerSwitch(SecomatEntity, SwitchEntity):
+class SecomatLaundryDryingSwitch(SecomatEntity, SwitchEntity):
     _attr_name = "Laundry Drying"
     _attr_icon = "mdi:washing-machine"
     _attr_device_class = SwitchDeviceClass.SWITCH
