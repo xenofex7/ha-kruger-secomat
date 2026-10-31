@@ -109,7 +109,7 @@ data:
   delay_seconds: 3600
 ```
 
-`delay_seconds` accepts 0 to 86400 (24 hours). Omit it or use 0 to start immediately. A pending start shows up in the Next Start sensor.
+`delay_seconds` accepts 0 to 86400 (24 hours). Omit it or use 0 to start immediately. A pending start shows up in the Next Start sensor. On Home Assistant before 2024.8, write `service:` instead of `action:`.
 
 ## How it works
 
