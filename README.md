@@ -99,7 +99,7 @@ You need a computer with Bluetooth and Python 3 next to the secomat.
    python3 read_token.py
    ```
 
-On macOS, allow your terminal app to use Bluetooth when asked.
+On macOS, allow your terminal app to use Bluetooth when asked. Pairing mode ends on its own after a while; the cloud connection keeps working throughout.
 
 #### Via mitmproxy
 
