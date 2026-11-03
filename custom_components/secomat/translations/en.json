@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Krüger secomat",
-        "description": "Enter your secomat claim token. You can obtain it by intercepting the secomat app traffic with mitmproxy.",
+        "description": "Enter your secomat claim token. Read it via Bluetooth with read_token.py or intercept the secomat app traffic with mitmproxy, see the README.",
         "data": {
           "claim_token": "Claim Token"
         }

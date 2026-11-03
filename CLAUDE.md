@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifiers. The integration communicates with Secomat devices through the Krüger Cloud API at `seco.krueger.ch:8080`.
 
-**Authentication**: Uses a `claim-token` header obtained by intercepting the official Secomat mobile app traffic with mitmproxy.
+**Authentication**: Uses a `claim-token` header, read from the device via Bluetooth (`read_token.py`) or intercepted from the official app traffic with mitmproxy.
 
 **Architecture**: Cloud polling integration (IoT class: `cloud_polling`) with a 60-second update interval. Do not go below 60 seconds: the cloud is not meant to be polled more often (issue #2).
 
@@ -58,7 +58,7 @@ Available commands sent via `api.send_command(command, args)`:
 | `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Toggle the app's "For all drying processes" lock; does not block moisture changes (credit: @ratsch) |
 | `PARAMETER_CHANGE` | `{"hmi_backlight": 0\|1}` | Display backlight, the app's "Control light on the device" (found by gmb2012, verified on hardware) |
 
-In normal operation a Bluetooth LE scan does not find the secomat (checked 03.11.2026), and the app's device search also asks for the device to send a Bluetooth signal. Reading the claim token via Bluetooth (as gmb2012 does) is therefore not offered; whether pairing mode via the WLAN button makes it work is untested.
+**Claim token via Bluetooth** (`read_token.py`, verified 03.11.2026): in normal operation the secomat does not advertise. A short press on the WLAN button starts pairing mode (button lights up permanently); the device then advertises as `SECOMAT-<serial>` without a service UUID, so the script matches the name. It reads the token from GATT characteristic `bbbbbbbb-1234-5678-abcd-06050403ff01` (found by gmb2012). The token read matched the one in use, the press did not change it, and the cloud connection kept working. Range matters: an ESPHome proxy in another room saw the device, the Mac only right next to it. Running bleak from Claude's own shell aborts (no macOS Bluetooth permission); run it in Terminal.app.
 
 ## State Mappings
 

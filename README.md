@@ -47,7 +47,7 @@ Home Assistant custom integration for the Krüger secomat WiFi dehumidifier. Exp
 
 - Home Assistant 2024.x or newer
 - Krüger secomat WiFi dehumidifier
-- Claim token from the secomat mobile app (see [Obtaining the claim token](#obtaining-the-claim-token))
+- Claim token of the device, read via Bluetooth or from the app traffic (see [Obtaining the claim token](#obtaining-the-claim-token))
 - HACS (recommended for installation and updates)
 
 ## Installation
@@ -82,7 +82,28 @@ To replace the claim token later, add the integration again with the new token. 
 
 ### Obtaining the claim token
 
-The secomat device has no open ports, so the integration talks to the Krüger Cloud API on your behalf. Authentication uses a `claim-token` header that the official mobile app sends with every request. Intercept it once with mitmproxy:
+The secomat device has no open ports, so the integration talks to the Krüger Cloud API on your behalf. Authentication uses a `claim-token` header that the official mobile app sends with every request. The token is stored on the device and can be read via Bluetooth, the same way the app does it during setup.
+
+#### Via Bluetooth (recommended)
+
+You need a computer with Bluetooth and Python 3 next to the secomat.
+
+1. Download the script and install its only dependency:
+   ```bash
+   curl -O https://raw.githubusercontent.com/xenofex7/ha-kruger-secomat/main/read_token.py
+   pip install bleak
+   ```
+2. Press the WLAN button on the secomat briefly. It then lights up permanently and the device becomes visible via Bluetooth as `SECOMAT-<serial number>`.
+3. Run the script next to the device. It prints the claim token:
+   ```bash
+   python3 read_token.py
+   ```
+
+On macOS, allow your terminal app to use Bluetooth when asked.
+
+#### Via mitmproxy
+
+If Bluetooth does not work, intercept the token from the app traffic instead:
 
 1. Install mitmproxy on a computer in your local network:
    ```bash
@@ -160,7 +181,7 @@ SECOMAT_TOKEN=... python3 watch.py
 
 - [@alexef](https://github.com/alexef) reverse-engineered the `PRG_WASH_MANUAL_ON` command and contributed the initial button and select platforms (PR #1).
 - [@ratsch](https://github.com/ratsch/ha-kruger-secomat) reverse-engineered the `PARAMETER_CHANGE` command for moisture target and lock, and the `PRG_WASH_MANUAL_OFF` cancel command.
-- [@gmb2012](https://github.com/gmb2012/ha-secomat) found the `hmi_backlight` command for the display backlight.
+- [@gmb2012](https://github.com/gmb2012/ha-secomat) found the `hmi_backlight` command for the display backlight and the Bluetooth characteristic that holds the claim token.
 - [@KMaen](https://github.com/KMaen) explained the `secomat_state` phases and recommended a polling interval of at least 60 seconds (issue #2).
 
 ## License
