@@ -1,4 +1,4 @@
-# Krüger Secomat Cloud API Reference
+# Krüger secomat Cloud API Reference
 
 Reverse-engineered notes on the Krüger Cloud API that this integration talks to. Useful if you want to script against the device directly, build another client, or extend the integration with new commands.
 
@@ -63,7 +63,7 @@ The device itself has no open ports - all communication runs through the Krüger
 |-------|---------|-------------|
 | `ambient_temperature` | `20.87` | Temperature in °C |
 | `humidity` | `50.50` | Relative humidity in % |
-| `secomat_state` | `0` = ready, `2` = starting, `5` = starting (~2 s before drying), `6` = drying, `15` = drying_high | Runtime phase (gaps remain - other values may appear during transitions) |
+| `secomat_state` | `0` = idle, `1`-`4` = pre-drying, `5`-`8` = main drying, `9`-`14` = final drying, `15` = sensor reset (laundry dry, waiting to be removed), `16` = program abort, `17`/`18` = manual service modes (not visible via the cloud), `19` = error (cleared only by rebooting the device) | Laundry program phase; room drying runs separately and keeps this at `0`. The integration maps it to ready / drying / finished / aborted / error. Source: [@KMaen](https://github.com/KMaen) in [gmb2012/ha-secomat#1](https://github.com/gmb2012/ha-secomat/issues/1) |
 | `operating_mode` | `0` = standby, `1` = no_program, `2` = laundry_program | Program state |
 | `room_drying_enabled` | `0` / `1` | Room drying active |
 | `target_humidity_level` | `0` = very_dry, `1` = dry, `2` = medium, `3` = moist | Target moisture level |
@@ -90,6 +90,6 @@ Non-OK status or HTTP error codes indicate a malformed command, an unknown comma
 
 ## Notes
 
-- The integration polls `GET` every 30 seconds.
+- The integration polls `GET` every 60 seconds. Avoid polling the cloud more often.
 - Each `POST` command must return `{"status": "OK"}`, otherwise the integration raises an error in Home Assistant. After a successful command it refreshes the state.
 - Timeouts are set to 10 seconds per request.

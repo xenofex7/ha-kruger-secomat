@@ -1,6 +1,6 @@
 {
   "domain": "secomat",
-  "name": "Krüger Secomat",
+  "name": "Krüger secomat",
   "codeowners": ["@xenofex7"],
   "config_flow": true,
   "dependencies": [],

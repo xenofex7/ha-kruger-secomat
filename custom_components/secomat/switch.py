@@ -54,7 +54,7 @@ class SecomatLaundryDryingSwitch(SecomatEntity, SwitchEntity):
             await self.coordinator.api.turn_off()
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
-            raise HomeAssistantError(f"Failed to turn off Secomat: {err}") from err
+            raise HomeAssistantError(f"Failed to turn off secomat: {err}") from err
 
 
 class SecomatRoomDryingSwitch(SecomatEntity, SwitchEntity):

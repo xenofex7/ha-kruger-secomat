@@ -42,7 +42,7 @@ class SecomatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured(updates={CONF_CLAIM_TOKEN: claim_token})
 
                 return self.async_create_entry(
-                    title=f"Secomat {serial}",
+                    title=f"secomat {serial}",
                     data={CONF_CLAIM_TOKEN: claim_token},
                 )
 

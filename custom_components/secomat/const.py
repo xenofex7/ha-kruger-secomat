@@ -4,14 +4,14 @@ CONF_CLAIM_TOKEN = "claim_token"
 
 API_BASE_URL = "https://seco.krueger.ch:8080/app1/v1/plc"
 
-DEFAULT_SCAN_INTERVAL = 30
+DEFAULT_SCAN_INTERVAL = 60
 
 SECOMAT_STATES = {
     0: "ready",
-    2: "starting",
-    5: "starting",
-    6: "drying",
-    15: "drying_high",
+    **{state: "drying" for state in range(1, 15)},
+    15: "finished",
+    16: "aborted",
+    19: "error",
 }
 
 OPERATING_MODES = {

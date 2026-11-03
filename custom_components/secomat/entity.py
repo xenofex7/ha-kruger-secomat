@@ -16,9 +16,9 @@ class SecomatEntity(CoordinatorEntity[SecomatCoordinator]):
         self._attr_unique_id = f"{serial}_{self._key}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, serial)},
-            name=f"Secomat {serial}",
+            name=f"secomat {serial}",
             manufacturer="Krüger",
-            model="Secomat",
+            model="secomat",
             serial_number=serial,
             sw_version=coordinator.data.get("fw_version"),
         )

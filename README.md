@@ -1,7 +1,7 @@
-# Krüger Secomat - Home Assistant Integration
+# Krüger secomat - Home Assistant Integration
 
 <p align="center">
-  <img src="assets/logo.png" alt="Krüger Secomat" width="160">
+  <img src="assets/logo.png" alt="Krüger secomat" width="160">
 </p>
 
 <p align="center">
@@ -13,7 +13,9 @@
   <img src="https://img.shields.io/github/commit-activity/y/xenofex7/ha-kruger-secomat" alt="commit activity">
 </p>
 
-Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exposes sensors, switches, a moisture-target select and a manual-start button via the Krüger Cloud API. Cloud-polled at 30-second intervals, no local device communication required (the device has no open ports).
+Home Assistant custom integration for the Krüger secomat WiFi dehumidifier. Exposes sensors, switches, a moisture-target select and a manual-start button via the Krüger Cloud API. Cloud-polled at 60-second intervals, no local device communication required (the device has no open ports).
+
+> **Disclaimer:** This is an independent community project by [@xenofex7](https://github.com/xenofex7). It is not affiliated with, supported or endorsed by Krüger. It uses the undocumented cloud API of the official app, which can change at any time without notice and break this integration.
 
 ## Features
 
@@ -27,7 +29,7 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 
 **Sensors**
 - Temperature, Humidity
-- State (ready / starting / drying / drying_high)
+- State (ready / drying / finished / aborted / error)
 - Operating Mode (standby / no_program / laundry_program)
 - Target Moisture (current setting, also exposed for automations)
 - Next Start (timestamp of scheduled start)
@@ -43,8 +45,8 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 ## Requirements
 
 - Home Assistant 2024.x or newer
-- Krüger Secomat WiFi dehumidifier
-- Claim token from the Secomat mobile app (see [Obtaining the claim token](#obtaining-the-claim-token))
+- Krüger secomat WiFi dehumidifier
+- Claim token from the secomat mobile app (see [Obtaining the claim token](#obtaining-the-claim-token))
 - HACS (recommended for installation and updates)
 
 ## Installation
@@ -52,7 +54,7 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 ### HACS (recommended)
 
 1. Open HACS in Home Assistant
-2. Search for "Krüger Secomat" and download it
+2. Search for "Krüger secomat" and download it
 3. Restart Home Assistant
 
 ### Manual
@@ -72,14 +74,14 @@ After installation, see [Configuration](#configuration) to add the integration.
 ### Add the integration
 
 1. Settings → Devices & Services → Add Integration
-2. Search for "Krüger Secomat"
+2. Search for "Krüger secomat"
 3. Enter your claim token (see below)
 
 To replace the claim token later, add the integration again with the new token. The existing entry is updated and reloaded; entities and their settings stay.
 
 ### Obtaining the claim token
 
-The Secomat device has no open ports, so the integration talks to the Krüger Cloud API on your behalf. Authentication uses a `claim-token` header that the official mobile app sends with every request. Intercept it once with mitmproxy:
+The secomat device has no open ports, so the integration talks to the Krüger Cloud API on your behalf. Authentication uses a `claim-token` header that the official mobile app sends with every request. Intercept it once with mitmproxy:
 
 1. Install mitmproxy on a computer in your local network:
    ```bash
@@ -91,7 +93,7 @@ The Secomat device has no open ports, so the integration talks to the Krüger Cl
    ```
 3. On your phone, set a manual HTTP proxy: server = your computer's IP, port = 8888 (WiFi settings → Proxy → Manual).
 4. Open `http://mitm.it` on the phone and install the mitmproxy CA certificate. On iOS: Settings → General → About → Certificate Trust Settings → enable mitmproxy.
-5. Open the Secomat app and interact with it for a few seconds.
+5. Open the secomat app and interact with it for a few seconds.
 6. In the mitmdump log, find requests to `seco.krueger.ch:8080`. The `claim-token` header value is your token.
 7. Disable the manual proxy on the phone.
 
@@ -117,16 +119,16 @@ data:
 flowchart LR
   HA["Home Assistant<br/>(this integration)"]
   Cloud["Krüger Cloud<br/>seco.krueger.ch:8080"]
-  Device["Secomat<br/>(WiFi, no open ports)"]
+  Device["secomat<br/>(WiFi, no open ports)"]
 
-  HA -->|"GET state every 30s"| Cloud
+  HA -->|"GET state every 60s"| Cloud
   HA -->|"POST commands"| Cloud
   Cloud <-->|"manufacturer protocol"| Device
 ```
 
-The device has no open ports and no documented local API. The official Secomat app talks to a cloud endpoint at `seco.krueger.ch:8080`; this integration replays the same HTTP requests. Authentication is a static `claim-token` header that you extract once from the app (see [Obtaining the claim token](#obtaining-the-claim-token)).
+The device has no open ports and no documented local API. The official secomat app talks to a cloud endpoint at `seco.krueger.ch:8080`; this integration replays the same HTTP requests. Authentication is a static `claim-token` header that you extract once from the app (see [Obtaining the claim token](#obtaining-the-claim-token)).
 
-State is polled every 30 seconds. Each command must be answered with `{"status": "OK"}`, otherwise the action fails with an error in Home Assistant; after a successful command the state is refreshed immediately. See [docs/API.md](docs/API.md) for the full command list and field reference.
+State is polled every 60 seconds. Each command must be answered with `{"status": "OK"}`, otherwise the action fails with an error in Home Assistant; after a successful command the state is refreshed immediately. See [docs/API.md](docs/API.md) for the full command list and field reference.
 
 ## Development
 
@@ -157,6 +159,7 @@ SECOMAT_TOKEN=... python3 watch.py
 
 - [@alexef](https://github.com/alexef) reverse-engineered the `PRG_WASH_MANUAL_ON` command and contributed the initial button and select platforms (PR #1).
 - [@ratsch](https://github.com/ratsch/ha-kruger-secomat) reverse-engineered the `PARAMETER_CHANGE` command for moisture target and lock, and the `PRG_WASH_MANUAL_OFF` cancel command.
+- [@KMaen](https://github.com/KMaen) explained the `secomat_state` phases and recommended a polling interval of at least 60 seconds (issue #2).
 
 ## License
 

@@ -8,7 +8,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 
 **Authentication**: Uses a `claim-token` header obtained by intercepting the official Secomat mobile app traffic with mitmproxy.
 
-**Architecture**: Cloud polling integration (IoT class: `cloud_polling`) with a 30-second update interval.
+**Architecture**: Cloud polling integration (IoT class: `cloud_polling`) with a 60-second update interval. Do not go below 60 seconds: the cloud is not meant to be polled more often (issue #2).
 
 ## Core Architecture
 
@@ -28,7 +28,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 
 **Coordinator** (`coordinator.py`):
 - `SecomatCoordinator` extends `DataUpdateCoordinator`
-- Polls `api.get_state()` every 30 seconds (configurable in `const.py`)
+- Polls `api.get_state()` every 60 seconds (configurable in `const.py`)
 - Returns dict with device state (temperature, humidity, mode, etc.)
 - Converts `SecomatAPIError` to `UpdateFailed` for HA error handling
 
@@ -62,10 +62,11 @@ Commands that exist in the app but are not yet reverse-engineered:
 
 ## State Mappings
 
-Defined in `const.py` (reverse-engineered by live observation; gaps remain):
+Defined in `const.py`:
 
-**Secomat States** (`secomat_state`):
-- 0=ready, 2=starting, 5=starting (brief transition), 6=drying, 15=drying_high
+**Secomat States** (`secomat_state`, phases explained by @KMaen, see `docs/API.md`):
+- 0=ready, 1-14=drying, 15=finished (laundry dry, waiting to be removed), 16=aborted, 19=error
+- 17/18 are service modes that never appear via the cloud and stay unmapped
 
 **Operating Modes** (`operating_mode`):
 - 0=standby, 1=no_program, 2=laundry_program
@@ -166,6 +167,7 @@ Error responses (observed):
 - **Entity naming**: Uses `has_entity_name = True` pattern (HA 2022.9+)
 - **Unique ID format**: `{serial_number}_{entity_type}` prevents duplicate entities
 - **Device info**: Defined once in `SecomatEntity`
+- **Branding**: the device brand is written "secomat" (lowercase) in all user-visible text; class names and code identifiers stay `Secomat...`
 
 ## Releases & HACS
 
