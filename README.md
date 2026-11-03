@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/xenofex7/ha-kruger-secomat/tags"><img src="https://img.shields.io/github/v/tag/xenofex7/ha-kruger-secomat?sort=semver&label=version" alt="latest tag"></a>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="license">
-  <img src="https://img.shields.io/badge/HACS-custom-41bdf5" alt="HACS">
+  <img src="https://img.shields.io/badge/HACS-default-41bdf5" alt="HACS">
   <img src="https://img.shields.io/badge/Home%20Assistant-2024.x+-03a9f4?logo=home-assistant&logoColor=white" alt="Home Assistant">
   <img src="https://img.shields.io/github/last-commit/xenofex7/ha-kruger-secomat" alt="last commit">
   <img src="https://img.shields.io/github/commit-activity/y/xenofex7/ha-kruger-secomat" alt="commit activity">
@@ -51,8 +51,8 @@ Home Assistant custom integration for the Krüger Secomat WiFi dehumidifier. Exp
 
 ### HACS (recommended)
 
-1. Add this repository as a custom repository in HACS (category: Integration)
-2. Install "Krüger Secomat"
+1. Open HACS in Home Assistant
+2. Search for "Krüger Secomat" and download it
 3. Restart Home Assistant
 
 ### Manual
