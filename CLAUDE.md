@@ -35,7 +35,7 @@ This is a **Home Assistant Custom Integration** for Krüger Secomat dehumidifier
 **Platforms**:
 - **Sensors**: Temperature, Humidity, State, Operating Mode, Firmware, Target Moisture, Error Count, Next Start, Device Tick
 - **Binary Sensors**: Eye Detects Object, Display Backlight, Problem
-- **Switches**: Laundry Drying, Room Drying, Moisture Lock
+- **Switches**: Laundry Drying, Room Drying, Moisture Lock, Display Backlight
 - **Select**: Target Moisture
 - **Button**: Start Manual Drying, plus the entity service `secomat.start_drying` (`delay_seconds`)
 
@@ -56,9 +56,9 @@ Available commands sent via `api.send_command(command, args)`:
 | `PRG_ROOM_OFF` | None | Disable room drying |
 | `PARAMETER_CHANGE` | `{"residual_moisture_target": 0-3}` | Set target moisture level (credit: @ratsch) |
 | `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Toggle the app's "For all drying processes" lock; does not block moisture changes (credit: @ratsch) |
+| `PARAMETER_CHANGE` | `{"hmi_backlight": 0\|1}` | Display backlight, the app's "Control light on the device" (found by gmb2012, verified on hardware) |
 
-Commands that exist in the app but are not yet reverse-engineered:
-- Toggle HMI backlight ("Control Lights" button)
+In normal operation a Bluetooth LE scan does not find the secomat (checked 03.11.2026), and the app's device search also asks for the device to send a Bluetooth signal. Reading the claim token via Bluetooth (as gmb2012 does) is therefore not offered; whether pairing mode via the WLAN button makes it work is untested.
 
 ## State Mappings
 

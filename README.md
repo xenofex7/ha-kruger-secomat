@@ -26,6 +26,7 @@ Home Assistant custom integration for the Krüger secomat WiFi dehumidifier. Exp
 - `secomat.start_drying` service with optional `delay_seconds` (0-86400, scheduled start for automations)
 - Target Moisture select (very_dry / dry / medium / moist)
 - Moisture Lock switch (configuration; the app's lock next to "For all drying processes", does not block moisture changes)
+- Display Backlight switch (configuration; the app's "Control light on the device")
 
 **Sensors**
 - Temperature, Humidity
@@ -159,6 +160,7 @@ SECOMAT_TOKEN=... python3 watch.py
 
 - [@alexef](https://github.com/alexef) reverse-engineered the `PRG_WASH_MANUAL_ON` command and contributed the initial button and select platforms (PR #1).
 - [@ratsch](https://github.com/ratsch/ha-kruger-secomat) reverse-engineered the `PARAMETER_CHANGE` command for moisture target and lock, and the `PRG_WASH_MANUAL_OFF` cancel command.
+- [@gmb2012](https://github.com/gmb2012/ha-secomat) found the `hmi_backlight` command for the display backlight.
 - [@KMaen](https://github.com/KMaen) explained the `secomat_state` phases and recommended a polling interval of at least 60 seconds (issue #2).
 
 ## License

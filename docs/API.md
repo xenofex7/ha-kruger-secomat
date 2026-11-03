@@ -28,10 +28,7 @@ The device itself has no open ports - all communication runs through the Krüger
 | `PRG_ROOM_OFF` | none | Disable room drying |
 | `PARAMETER_CHANGE` | `{"residual_moisture_target": 0..3}` | Set the target moisture level. Discovered by [@ratsch](https://github.com/ratsch/ha-kruger-secomat). |
 | `PARAMETER_CHANGE` | `{"lock_residual_moisture_target": 0\|1}` | Toggle the lock shown next to "For all drying processes" in the app. It does not block changes: the device and the app both accept a new `residual_moisture_target` while locked. Discovered by [@ratsch](https://github.com/ratsch/ha-kruger-secomat). |
-
-### Known but not reverse-engineered
-
-- Toggle HMI backlight ("Control Lights" button in the app)
+| `PARAMETER_CHANGE` | `{"hmi_backlight": 0\|1}` | Turn the display backlight on or off ("Control light on the device" in the app). `hmi_backlight` follows within about 1 s. Found in [gmb2012/ha-secomat](https://github.com/gmb2012/ha-secomat), verified on hardware. |
 
 ## Status fields
 

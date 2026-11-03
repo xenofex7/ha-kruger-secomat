@@ -101,6 +101,9 @@ class SecomatAPI:
     async def set_moisture_lock(self, locked: bool) -> None:
         await self.send_command(CMD_PARAMETER_CHANGE, {"lock_residual_moisture_target": int(locked)})
 
+    async def set_backlight(self, enabled: bool) -> None:
+        await self.send_command(CMD_PARAMETER_CHANGE, {"hmi_backlight": int(enabled)})
+
     async def start_room_drying(self) -> None:
         await self.send_command(CMD_ROOM_ON)
 

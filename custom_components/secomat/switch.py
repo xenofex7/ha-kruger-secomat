@@ -25,6 +25,7 @@ async def async_setup_entry(
         SecomatLaundryDryingSwitch(coordinator, serial),
         SecomatRoomDryingSwitch(coordinator, serial),
         SecomatMoistureLockSwitch(coordinator, serial),
+        SecomatBacklightSwitch(coordinator, serial),
     ]
 
     async_add_entities(entities)
@@ -105,3 +106,28 @@ class SecomatMoistureLockSwitch(SecomatEntity, SwitchEntity):
             await self.coordinator.async_request_refresh()
         except SecomatAPIError as err:
             raise HomeAssistantError(f"Failed to unlock moisture: {err}") from err
+
+
+class SecomatBacklightSwitch(SecomatEntity, SwitchEntity):
+    _attr_name = "Display Backlight"
+    _attr_icon = "mdi:monitor-shimmer"
+    _attr_entity_category = EntityCategory.CONFIG
+    _key = "display_backlight"
+
+    @property
+    def is_on(self) -> bool:
+        return bool(self.coordinator.data.get("hmi_backlight", 0))
+
+    async def async_turn_on(self, **kwargs) -> None:
+        try:
+            await self.coordinator.api.set_backlight(True)
+            await self.coordinator.async_request_refresh()
+        except SecomatAPIError as err:
+            raise HomeAssistantError(f"Failed to turn on display backlight: {err}") from err
+
+    async def async_turn_off(self, **kwargs) -> None:
+        try:
+            await self.coordinator.api.set_backlight(False)
+            await self.coordinator.async_request_refresh()
+        except SecomatAPIError as err:
+            raise HomeAssistantError(f"Failed to turn off display backlight: {err}") from err
